@@ -1,18 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export const auth = (req: Request, res: Response, next: NextFunction) => {
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+interface JwtPayload {
+  id: number;
+  email: string;
+  role: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
+    }
+  }
+}
+
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ message: 'No authentication token, access denied' });
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const verified = jwt.verify(token, process.env.JWT_SECRET || 'default_secret');
-    (req as any).user = verified;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token verification failed, authorization denied' });
+    res.status(401).json({ message: 'Invalid token' });
   }
 }; 

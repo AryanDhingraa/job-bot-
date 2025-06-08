@@ -1,72 +1,60 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../data-source';
 import { User } from '../entity/User';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const userRepository = AppDataSource.getRepository(User);
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-export const signup = async (req: Request, res: Response) => {
+export const signUp = async (req: Request, res: Response) => {
   try {
     const { username, email, password, role } = req.body;
 
     // Check if user already exists
+    const userRepository = AppDataSource.getRepository(User);
     const existingUser = await userRepository.findOne({
-      where: [{ username }, { email }]
+      where: [{ email }, { username }]
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: 'Username or email already exists' });
+      return res.status(400).json({
+        message: 'User with this email or username already exists'
+      });
     }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const password_hash = await bcrypt.hash(password, salt);
 
     // Create new user
     const user = userRepository.create({
       username,
       email,
-      password_hash: hashedPassword,
-      role: role || 'candidate'
+      password_hash,
+      role
     });
 
     await userRepository.save(user);
 
-    // Generate JWT
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '1d' }
-    );
-
-    res.status(201).json({
-      message: 'User created successfully',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
-    });
+    // Remove password from response
+    const { password_hash: _, ...userWithoutPassword } = user;
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ message: 'Error creating user' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-export const signin = async (req: Request, res: Response) => {
+export const signIn = async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     // Find user
-    const user = await userRepository.findOne({
-      where: { username }
-    });
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     // Check if user is blocked
@@ -75,57 +63,43 @@ export const signin = async (req: Request, res: Response) => {
     }
 
     // Verify password
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Generate JWT
+    // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: '1d' }
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
     );
 
-    res.json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
-    });
+    // Remove password from response
+    const { password_hash: _, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword, token });
   } catch (error) {
     console.error('Signin error:', error);
-    res.status(500).json({ message: 'Error signing in' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-export const getProfile = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id; // Will be set by auth middleware
+    const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOne({
-      where: { id: userId }
+      where: { id: (req as any).user.id }
     });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        date_joined: user.date_joined,
-        avatar_url: user.avatar_url
-      }
-    });
+    // Remove password from response
+    const { password_hash: _, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
   } catch (error) {
-    console.error('Profile error:', error);
-    res.status(500).json({ message: 'Error fetching profile' });
+    console.error('Get current user error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

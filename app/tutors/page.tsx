@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search } from 'lucide-react';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 // Sample tutor data - in a real app, this would come from a database
 const tutorProfile = {
@@ -37,185 +40,287 @@ const tutorProfile = {
   },
 };
 
-export default function TutorPortal() {
-  const [availability, setAvailability] = useState('part-time');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+interface Course {
+  id: number;
+  code: string;
+  name: string;
+  semester: string;
+  description?: string;
+}
 
-  const skillsList = [
-    'Python', 'Java', 'JavaScript', 'C++', 'React', 
-    'Node.js', 'SQL', 'Machine Learning', 'Web Development',
-    'Data Structures', 'Algorithms', 'Software Engineering'
-  ];
+interface Application {
+  id: number;
+  course: Course;
+  role_applied: 'tutor' | 'lab_assistant';
+  status: 'pending' | 'accepted' | 'rejected';
+  applied_at: string;
+  availability: 'full_time' | 'part_time';
+  relevant_skills?: string[];
+}
+
+declare global {
+  interface Window {
+    localStorage: Storage;
+  }
+}
+
+export default function TutorPortal() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'tutor' | 'lab_assistant'>('tutor');
+  const [selectedAvailability, setSelectedAvailability] = useState<'full_time' | 'part_time'>('part_time');
+  const [relevantSkills, setRelevantSkills] = useState('');
+
+  useEffect(() => {
+    fetchCourses();
+    fetchApplications();
+  }, []);
+
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage?.getItem('token');
+    }
+    return null;
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      const response = await axios.get('http://localhost:3001/api/candidate/courses', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCourses(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch courses');
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      const response = await axios.get('http://localhost:3001/api/candidate/applications', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setApplications(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch applications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!selectedCourse) {
+      toast.error('Please select a course');
+      return;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      await axios.post(
+        'http://localhost:3001/api/candidate/apply',
+        {
+          courseId: selectedCourse,
+          role: selectedRole,
+          availability: selectedAvailability,
+          relevant_skills: relevantSkills.split(',').map(skill => skill.trim())
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast.success('Application submitted successfully');
+      fetchApplications();
+      resetForm();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to submit application');
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedCourse(null);
+    setSelectedRole('tutor');
+    setSelectedAvailability('part_time');
+    setRelevantSkills('');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return 'bg-green-500';
+      case 'rejected':
+        return 'bg-red-500';
+      default:
+        return 'bg-yellow-500';
+    }
+  };
+
+  const filteredCourses = courses.filter(course =>
+    course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Tutor Portal</h1>
 
-      <Tabs defaultValue="applications" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="applications">Applications</TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+      <Tabs defaultValue="apply" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="apply">Apply for Position</TabsTrigger>
+          <TabsTrigger value="applications">My Applications</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="apply">
+          <Card>
+            <CardHeader>
+              <CardTitle>Apply for a Position</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Search Courses</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by course name or code..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Select Course</Label>
+                  <Select
+                    value={selectedCourse?.toString()}
+                    onValueChange={(value) => setSelectedCourse(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredCourses.map((course) => (
+                        <SelectItem key={course.id} value={course.id.toString()}>
+                          {course.code} - {course.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Position</Label>
+                  <Select
+                    value={selectedRole}
+                    onValueChange={(value: 'tutor' | 'lab_assistant') => setSelectedRole(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tutor">Tutor</SelectItem>
+                      <SelectItem value="lab_assistant">Lab Assistant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Availability</Label>
+                  <Select
+                    value={selectedAvailability}
+                    onValueChange={(value: 'full_time' | 'part_time') => setSelectedAvailability(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_time">Full Time</SelectItem>
+                      <SelectItem value="part_time">Part Time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Relevant Skills (comma-separated)</Label>
+                  <Input
+                    placeholder="e.g., Python, Java, Data Structures"
+                    value={relevantSkills}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRelevantSkills(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleApply} className="w-full">
+                Submit Application
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="applications">
           <Card>
             <CardHeader>
-              <CardTitle>Apply for Teaching Positions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="course">Select Course</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="COSC1001">COSC1001 - Introduction to Programming</SelectItem>
-                      <SelectItem value="COSC2002">COSC2002 - Data Structures</SelectItem>
-                      <SelectItem value="COSC3003">COSC3003 - Full Stack Development</SelectItem>
-                      <SelectItem value="COSC4004">COSC4004 - Artificial Intelligence</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="role">Preferred Role</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tutor">Tutor</SelectItem>
-                      <SelectItem value="lab-assistant">Lab Assistant</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Availability</Label>
-                  <div className="flex space-x-4 mt-2">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="part-time"
-                        name="availability"
-                        value="part-time"
-                        checked={availability === 'part-time'}
-                        onChange={(e) => setAvailability(e.target.value)}
-                        className="rounded-full"
-                      />
-                      <Label htmlFor="part-time">Part Time</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="full-time"
-                        name="availability"
-                        value="full-time"
-                        checked={availability === 'full-time'}
-                        onChange={(e) => setAvailability(e.target.value)}
-                        className="rounded-full"
-                      />
-                      <Label htmlFor="full-time">Full Time</Label>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Additional Comments</Label>
-                  <Textarea
-                    placeholder="Add any additional information about your application..."
-                    className="mt-2"
-                  />
-                </div>
-
-                <Button className="w-full">Submit Application</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Academic Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label>Current Degree</Label>
-                  <Input defaultValue={tutorProfile.credentials.degree} />
-                </div>
-
-                <div>
-                  <Label>GPA</Label>
-                  <Input defaultValue={tutorProfile.credentials.gpa} />
-                </div>
-
-                <div>
-                  <Label>Current Level</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder={tutorProfile.credentials.currentLevel} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="undergraduate">Undergraduate</SelectItem>
-                      <SelectItem value="honours">Honours</SelectItem>
-                      <SelectItem value="masters">Masters Student</SelectItem>
-                      <SelectItem value="phd">PhD Candidate</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="mb-2 block">Skills</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {skillsList.map((skill) => (
-                      <div key={skill} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={skill}
-                          checked={selectedSkills.includes(skill)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedSkills([...selectedSkills, skill]);
-                            } else {
-                              setSelectedSkills(selectedSkills.filter((s) => s !== skill));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={skill}>{skill}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Button className="w-full">Update Profile</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Teaching History</CardTitle>
+              <CardTitle>My Applications</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {tutorProfile.previousRoles.map((role, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-semibold">{role.courseCode} - {role.courseName}</h3>
-                        <p className="text-muted-foreground">{role.semester}</p>
-                      </div>
-                      <Badge>{role.role}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <div className="text-center py-4">Loading applications...</div>
+              ) : applications.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  You haven't submitted any applications yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {applications.map((application) => (
+                    <Card key={application.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">
+                              {application.course.code} - {application.course.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Position: {application.role_applied === 'tutor' ? 'Tutor' : 'Lab Assistant'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Applied: {new Date(application.applied_at).toLocaleDateString()}
+                            </p>
+                            {application.relevant_skills && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {application.relevant_skills.map((skill, index) => (
+                                  <Badge key={index} variant="secondary">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <Badge className={getStatusColor(application.status)}>
+                            {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

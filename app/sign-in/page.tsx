@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { authService } from '@/lib/auth';
 
 export default function SignInPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,31 +26,47 @@ export default function SignInPage() {
     return password.length >= 8;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (!validateEmail(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
+    try {
+      if (!validateEmail(formData.email)) {
+        toast.error('Please enter a valid email address');
+        return;
+      }
 
-    if (!validatePassword(formData.password)) {
-      toast.error('Password must be at least 8 characters long');
-      return;
-    }
+      if (!validatePassword(formData.password)) {
+        toast.error('Password must be at least 8 characters long');
+        return;
+      }
 
-    // Get stored users from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find((u: any) => u.email === formData.email && u.password === formData.password);
-
-    if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      const { user, token } = await authService.signIn(formData);
+      
+      // Store token and user data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
       toast.success('Successfully signed in!');
       
-      // Redirect based on user type (dummy data assumes tutor)
-      router.push('/tutors');
-    } else {
-      toast.error('Invalid email or password');
+      // Redirect based on user role
+      switch (user.role) {
+        case 'candidate':
+          router.push('/tutors');
+          break;
+        case 'lecturer':
+          router.push('/lecturers');
+          break;
+        case 'admin':
+          router.push('/admin');
+          break;
+        default:
+          router.push('/');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to sign in');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,6 +90,7 @@ export default function SignInPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -83,10 +102,11 @@ export default function SignInPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
+                disabled={loading}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}

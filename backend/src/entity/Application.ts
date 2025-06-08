@@ -23,4 +23,16 @@ export class Application {
 
   @CreateDateColumn()
   applied_at!: Date;
+
+  @Column({ type: 'text', nullable: true })
+  comments?: string;
+
+  @Column({ nullable: true })
+  ranking?: number;
+
+  @Column({ type: 'enum', enum: ['full_time', 'part_time'] })
+  availability!: 'full_time' | 'part_time';
+
+  @Column({ type: 'simple-array', nullable: true })
+  relevant_skills?: string[];
 } 

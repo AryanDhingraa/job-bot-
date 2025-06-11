@@ -11,7 +11,7 @@ export class LecturerCourse {
   @JoinColumn({ name: 'lecturer_id' })
   lecturer!: User;
 
-  @ManyToOne(() => Course)
+  @ManyToOne(() => Course, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'course_id' })
   course!: Course;
 } 

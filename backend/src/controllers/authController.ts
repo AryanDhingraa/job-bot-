@@ -77,9 +77,9 @@ export const signIn = async (req: Request, res: Response) => {
 
     // Remove password from response
     const { password_hash: _, ...userWithoutPassword } = user;
-    res.json({ user: userWithoutPassword, token });
+    const responsePayload = { user: userWithoutPassword, token };
+    res.json(responsePayload);
   } catch (error) {
-    console.error('Signin error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

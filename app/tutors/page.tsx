@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { useSearchParams } from 'next/navigation';
 
 // Sample tutor data - in a real app, this would come from a database
 const tutorProfile = {
@@ -73,11 +74,52 @@ export default function TutorPortal() {
   const [selectedRole, setSelectedRole] = useState<'tutor' | 'lab_assistant'>('tutor');
   const [selectedAvailability, setSelectedAvailability] = useState<'full_time' | 'part_time'>('part_time');
   const [relevantSkills, setRelevantSkills] = useState('');
+  const [errors, setErrors] = useState({
+    course: '',
+    role: '',
+    availability: '',
+    skills: '',
+  });
+  const searchParams = useSearchParams();
+
+  console.log("Current searchTerm:", searchTerm); // Added for debugging
 
   useEffect(() => {
-    fetchCourses();
+    const initialCourseId = searchParams.get('courseId');
+
+    const fetchCoursesAndSetInitial = async () => {
+      try {
+        const token = getToken();
+        if (!token) {
+          toast.error('Authentication required');
+          setLoading(false); // Stop loading if no token
+          return;
+        }
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCourses(response.data);
+
+        // If initialCourseId is present, try to pre-select the course
+        if (initialCourseId) {
+          const courseToSelect = response.data.find(
+            (course: Course) => course.id === parseInt(initialCourseId)
+          );
+          if (courseToSelect) {
+            setSelectedCourse(courseToSelect.id);
+            setSearchTerm(courseToSelect.name); // Set search term to course name
+          }
+        }
+      } catch (error) {
+        toast.error('Failed to fetch courses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoursesAndSetInitial();
     fetchApplications();
-  }, []);
+  }, [searchParams]); // Depend on searchParams to re-run when query changes
 
   const getToken = () => {
     if (typeof window !== 'undefined') {
@@ -93,7 +135,7 @@ export default function TutorPortal() {
         toast.error('Authentication required');
         return;
       }
-      const response = await axios.get('http://localhost:3001/api/candidate/courses', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/candidate/courses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCourses(response.data);
@@ -109,7 +151,7 @@ export default function TutorPortal() {
         toast.error('Authentication required');
         return;
       }
-      const response = await axios.get('http://localhost:3001/api/candidate/applications', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/candidate/applications`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setApplications(response.data);
@@ -120,9 +162,37 @@ export default function TutorPortal() {
     }
   };
 
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = { course: '', role: '', availability: '', skills: '' };
+
+    if (selectedCourse === null) {
+      newErrors.course = 'Please select a course';
+      valid = false;
+    }
+
+    if (!selectedRole || !['tutor', 'lab_assistant'].includes(selectedRole)) {
+      newErrors.role = 'Please select a valid position';
+      valid = false;
+    }
+
+    if (!selectedAvailability || !['full_time', 'part_time'].includes(selectedAvailability)) {
+      newErrors.availability = 'Please select availability';
+      valid = false;
+    }
+
+    if (relevantSkills.trim() && relevantSkills.split(',').some(skill => skill.trim() === '')) {
+      newErrors.skills = 'Skills cannot be empty if provided, separate by commas';
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
+
   const handleApply = async () => {
-    if (!selectedCourse) {
-      toast.error('Please select a course');
+    if (!validateForm()) {
+      toast.error('Please correct the errors in the form');
       return;
     }
 
@@ -133,7 +203,7 @@ export default function TutorPortal() {
         return;
       }
       await axios.post(
-        'http://localhost:3001/api/candidate/apply',
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/candidate/apply`,
         {
           courseId: selectedCourse,
           role: selectedRole,
@@ -158,6 +228,7 @@ export default function TutorPortal() {
     setSelectedRole('tutor');
     setSelectedAvailability('part_time');
     setRelevantSkills('');
+    setErrors({ course: '', role: '', availability: '', skills: '' }); // Clear errors on reset
   };
 
   const getStatusColor = (status: string) => {
@@ -209,11 +280,14 @@ export default function TutorPortal() {
                 <div className="space-y-2">
                   <Label>Select Course</Label>
                   <Select
-                    value={selectedCourse?.toString()}
-                    onValueChange={(value) => setSelectedCourse(parseInt(value))}
+                    value={selectedCourse?.toString() || ''} // Use empty string for unselected
+                    onValueChange={(value) => {
+                      setSelectedCourse(parseInt(value));
+                      setErrors((prevErrors) => ({ ...prevErrors, course: '' }));
+                    }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a course" />
+                      <SelectValue placeholder="Select a course" />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredCourses.map((course) => (
@@ -223,13 +297,17 @@ export default function TutorPortal() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.course && <p className="text-red-500 text-sm">{errors.course}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Position</Label>
                   <Select
                     value={selectedRole}
-                    onValueChange={(value: 'tutor' | 'lab_assistant') => setSelectedRole(value)}
+                    onValueChange={(value: 'tutor' | 'lab_assistant') => {
+                      setSelectedRole(value);
+                      setErrors((prevErrors) => ({ ...prevErrors, role: '' }));
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select position" />
@@ -239,13 +317,17 @@ export default function TutorPortal() {
                       <SelectItem value="lab_assistant">Lab Assistant</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Availability</Label>
                   <Select
                     value={selectedAvailability}
-                    onValueChange={(value: 'full_time' | 'part_time') => setSelectedAvailability(value)}
+                    onValueChange={(value: 'full_time' | 'part_time') => {
+                      setSelectedAvailability(value);
+                      setErrors((prevErrors) => ({ ...prevErrors, availability: '' }));
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select availability" />
@@ -255,6 +337,7 @@ export default function TutorPortal() {
                       <SelectItem value="part_time">Part Time</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.availability && <p className="text-red-500 text-sm">{errors.availability}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -262,8 +345,12 @@ export default function TutorPortal() {
                   <Input
                     placeholder="e.g., Python, Java, Data Structures"
                     value={relevantSkills}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRelevantSkills(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setRelevantSkills(e.target.value);
+                      setErrors((prevErrors) => ({ ...prevErrors, skills: '' }));
+                    }}
                   />
+                  {errors.skills && <p className="text-red-500 text-sm">{errors.skills}</p>}
                 </div>
               </div>
 

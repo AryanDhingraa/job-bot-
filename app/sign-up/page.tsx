@@ -22,143 +22,183 @@ export default function SignUpPage() {
     role: 'candidate' as 'candidate' | 'lecturer' | 'admin',
   });
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const [errors, setErrors] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [id]: value }));
+    // Clear error for the field as user types
+    setErrors((prevErrors) => ({ ...prevErrors, [id]: '' }));
   };
 
-  const validatePassword = (password: string) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password);
-  };
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = { username: '', email: '', password: '', confirmPassword: '' };
 
-  const validateUsername = (username: string) => {
-    return username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+      valid = false;
+    } else if (formData.username.trim().length < 3) {
+      newErrors.username = 'Username must be at least 3 characters long';
+      valid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+      valid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+      valid = false;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+      valid = false;
+    } else if (!passwordRegex.test(formData.password)) {
+      newErrors.password = 'Password must be at least 8 characters long and contain uppercase, lowercase, number and special character';
+      valid = false;
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Confirm password is required';
+      valid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Please correct the errors in the form');
+      return;
+    }
+
     setLoading(true);
-
     try {
-      // Validate username
-      if (!validateUsername(formData.username)) {
-        toast.error('Username must be at least 3 characters and contain only letters, numbers, and underscores');
-        return;
-      }
-
-      // Validate email
-      if (!validateEmail(formData.email)) {
-        toast.error('Please enter a valid email address');
-        return;
-      }
-
-      // Validate password
-      if (!validatePassword(formData.password)) {
-        toast.error('Password must be at least 8 characters and contain uppercase, lowercase, and numbers');
-        return;
-      }
-
-      // Check password confirmation
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
-        return;
-      }
-
       const user = await authService.signUp(formData);
-      toast.success('Account created successfully! Please sign in.');
-      router.push('/sign-in');
+
+      // No token is returned on signup, only on sign-in
+      // localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      toast.success('Account created successfully!');
+
+      switch (user.role) {
+        case 'candidate':
+          router.push('/tutors');
+          break;
+        case 'lecturer':
+          router.push('/lecturer');
+          break;
+        case 'admin':
+          router.push('/admin');
+          break;
+        default:
+          router.push('/');
+      }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create account');
+      toast.error(error.response?.data?.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>
-            Enter your details to create your account
-          </CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardDescription>Enter your details below to create your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
-                placeholder="johndoe"
+                type="text"
+                placeholder="John Doe"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="m@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Confirm your password"
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: 'candidate' | 'lecturer' | 'admin') => 
-                  setFormData({ ...formData, role: value })}
-                disabled={loading}
+                onValueChange={(value) => handleChange({ target: { id: 'role', value } } as React.ChangeEvent<HTMLSelectElement>)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="candidate">Candidate</SelectItem>
                   <SelectItem value="lecturer">Lecturer</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  {/* Admin role can be added here if needed for direct sign-up, or handled separately */}
                 </SelectContent>
               </Select>
             </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
+
+            <div className="text-center text-sm text-gray-500">
               Already have an account?{' '}
-              <Link href="/sign-in" className="text-primary hover:underline">
+              <Link href="/sign-in" className="font-medium text-primary hover:underline">
                 Sign In
               </Link>
-            </p>
+            </div>
           </form>
         </CardContent>
       </Card>

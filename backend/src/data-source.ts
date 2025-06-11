@@ -5,8 +5,9 @@ import { Course } from './entity/Course';
 import { Application } from './entity/Application';
 import { LecturerCourse } from './entity/LecturerCourse';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export const AppDataSource = new DataSource({
   type: 'mysql',

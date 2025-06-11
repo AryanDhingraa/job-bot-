@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^10.0.0",
     "@hookform/resolvers": "^3.9.0",
     "@next/swc-wasm-nodejs": "15.3.0",
     "@radix-ui/react-accordion": "^1.2.0",
@@ -50,6 +51,9 @@
     "embla-carousel-react": "^8.3.0",
     "eslint": "9.24.0",
     "eslint-config-next": "15.3.0",
+    "graphql": "^15.8.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-ws": "^5.14.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
     "next": "15.3.0",
@@ -65,8 +69,13 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
+    "type-graphql": "^1.1.1",
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
+    "ws": "^8.16.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10"
   }
 }

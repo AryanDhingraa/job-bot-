@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { RequestHandler } from 'express';
 import { auth } from '../middleware/auth';
-import { getMyCourseApplications, updateApplicationStatus } from '../controllers/lecturerController';
+import { getMyCourseApplications, updateApplicationStatus, getLecturerDashboardStats } from '../controllers/lecturerController';
 
 const router = Router();
 
@@ -19,14 +19,17 @@ router.use(auth as RequestHandler, lecturerOnly as RequestHandler);
 // Get all applications for courses taught by the lecturer
 router.get('/applications', getMyCourseApplications as RequestHandler);
 
+// Get dashboard statistics
+router.get('/stats', getLecturerDashboardStats as RequestHandler);
+
 // Approve an application
-router.post('/applications/:id/approve', (req, res) => {
+router.post('/applications/:id/accepted', (req, res) => {
   req.body.status = 'accepted';
   updateApplicationStatus(req, res);
 });
 
 // Reject an application
-router.post('/applications/:id/reject', (req, res) => {
+router.post('/applications/:id/rejected', (req, res) => {
   req.body.status = 'rejected';
   updateApplicationStatus(req, res);
 });

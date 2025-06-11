@@ -18,44 +18,64 @@ export default function SignInPage() {
     password: '',
   });
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [id]: value }));
+    setErrors((prevErrors) => ({ ...prevErrors, [id]: '' }));
   };
 
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = { email: '', password: '' };
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+      valid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+      valid = false;
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+      valid = false;
+    } else if (formData.password.length < 8) { // Basic length check, adjust as per backend complexity
+      newErrors.password = 'Password must be at least 8 characters long';
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Please correct the errors in the form.');
+      return;
+    }
+
     setLoading(true);
-
     try {
-      if (!validateEmail(formData.email)) {
-        toast.error('Please enter a valid email address');
-        return;
-      }
-
-      if (!validatePassword(formData.password)) {
-        toast.error('Password must be at least 8 characters long');
-        return;
-      }
-
       const { user, token } = await authService.signIn(formData);
       
-      // Store token and user data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
       toast.success('Successfully signed in!');
       
-      // Redirect based on user role
       switch (user.role) {
         case 'candidate':
           router.push('/tutors');
           break;
         case 'lecturer':
-          router.push('/lecturers');
+          router.push('/lecturer');
           break;
         case 'admin':
           router.push('/admin');
@@ -71,49 +91,45 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Sign In</CardTitle>
+          <CardDescription>Enter your email and password to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="m@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                disabled={loading}
+                onChange={handleChange}
               />
+              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <Link href="/sign-up" className="text-primary hover:underline">
+            <div className="text-center text-sm text-gray-500">
+              Don't have an account?{' '}
+              <Link href="/sign-up" className="font-medium text-primary hover:underline">
                 Sign Up
               </Link>
-            </p>
+            </div>
           </form>
         </CardContent>
       </Card>

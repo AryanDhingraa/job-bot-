@@ -1,7 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Course Management System
 
+A full-stack application for managing courses, applications, and user roles in an educational institution.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Code Structure
+
+```
+├── admin-frontend/                # Admin dashboard frontend
+│   ├── app/                      # Next.js app directory
+│   │   ├── page.tsx             # Main admin dashboard page
+│   │   └── layout.tsx           # Admin layout component
+│   ├── components/              # Admin-specific components
+│   └── types/                   # TypeScript type definitions
+│
+├── frontend/                     # Main application frontend
+│   ├── app/                     # Next.js app directory
+│   │   ├── page.tsx            # Home page
+│   │   ├── signin/             # Sign in page
+│   │   ├── signup/             # Sign up page
+│   │   └── layout.tsx          # Main layout component
+│   ├── components/             # Reusable components
+│   └── types/                  # TypeScript type definitions
+│
+├── backend/                      # Backend server
+│   ├── src/
+│   │   ├── entity/             # Database entities
+│   │   │   ├── User.ts
+│   │   │   ├── Course.ts
+│   │   │   ├── Application.ts
+│   │   │   └── LecturerCourse.ts
+│   │   │
+│   │   ├── graphql/            # GraphQL implementation
+│   │   │   ├── resolvers/      # GraphQL resolvers
+│   │   │   └── schema/         # GraphQL schema
+│   │   │
+│   │   ├── migration/          # Database migrations
+│   │   └── data-source.ts      # Database configuration
+│   │
+│   └── docs/                   # Documentation
+│
+└── components/                   # Shared components
+    ├── ui/                     # UI components
+    └── forms/                  # Form components
+```
+
+## Quick Start Guide
+
+### Prerequisites
+- Node.js (v18 or higher)
+- PostgreSQL (v14 or higher)
+- npm package manager
+
+### Running the Application
+
+1. **Start the Backend Server**
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+   The backend server will run on http://localhost:4000
+
+2. **Start the Main Frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   The main application will run on http://localhost:3000
+
+3. **Start the Admin Dashboard**
+   ```bash
+   cd admin-frontend
+   npm install
+   npm run dev
+   ```
+   The admin dashboard will run on http://localhost:3001
+
+### Accessing the Application
+- Main Application: http://localhost:3000
+- Admin Dashboard: http://localhost:3001
+- GraphQL Playground: http://localhost:4000/graphql
+
+### Default Admin Credentials
+- Email: admin@teachteam.com
+- Password: password123
+
+### Features
+- User registration and authentication
+- Course management (create, read, update, delete)
+- Application management
+- User management (block/unblock users)
+- Application status tracking
+
+### Note
+The database schema and tables will be automatically created when you first run the backend server. 
 
 ## Link for the project: {https://github.com/rmit-fsd-2025-s1/s4024089-s4088281-a1.git}
 

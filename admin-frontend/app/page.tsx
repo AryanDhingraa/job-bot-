@@ -839,7 +839,7 @@ export default function AdminDashboard() {
                     <p className="text-gray-500 italic">No candidates have been approved for any courses yet.</p>
                   )}
                 </div>
-              </div>
+      </div>
 
               {/* Unavailable Candidates Section */}
               {unavailableCandidates.length > 0 && (
@@ -888,7 +888,7 @@ export default function AdminDashboard() {
               <Label htmlFor="editDescription" className="text-right">Description</Label>
               <Input id="editDescription" value={editCourseDescription} onChange={(e) => setEditCourseDescription(e.target.value)} className="col-span-3" />
             </div>
-          </div>
+      </div>
           <DialogFooter>
             <Button onClick={handleSaveEditedCourse} variant="default">Save changes</Button>
           </DialogFooter>
@@ -896,4 +896,4 @@ export default function AdminDashboard() {
       </Dialog>
     </div>
   );
-} 
+}

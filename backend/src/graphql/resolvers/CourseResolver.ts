@@ -58,7 +58,7 @@ export class CourseResolver {
   @Mutation(() => Boolean)
   async deleteCourse(@Arg('id', () => Int) id: number): Promise<boolean> {
     const result = await this.courseRepository.delete(id);
-    return result.affected !== undefined && result.affected > 0;
+    return !!result.affected && result.affected > 0;
   }
 
   @Authorized('admin')

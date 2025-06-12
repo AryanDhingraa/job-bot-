@@ -76,6 +76,11 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/ws": "^8.5.10"
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "@typescript-eslint/typescript-estree": "^8.34.0",
+    "glob": "^11.0.2",
+    "minimatch": "^10.0.1"
   }
 }

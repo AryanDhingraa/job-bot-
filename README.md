@@ -33,7 +33,6 @@ A full-stack application for managing courses, applications, and user roles in a
 │   │   │   ├── resolvers/      # GraphQL resolvers
 │   │   │   └── schema/         # GraphQL schema
 │   │   │
-│   │   ├── migration/          # Database migrations
 │   │   └── data-source.ts      # Database configuration
 │   │
 │   └── docs/                   # Documentation
@@ -79,7 +78,7 @@ A full-stack application for managing courses, applications, and user roles in a
 ### Accessing the Application
 - Main Application: http://localhost:3000
 - Admin Dashboard: http://localhost:3001
-- GraphQL Playground: http://localhost:4000/graphql
+- GraphQL Playground: http://localhost:5000/graphql
 
 ### Default Admin Credentials
 - Email: admin@teachteam.com

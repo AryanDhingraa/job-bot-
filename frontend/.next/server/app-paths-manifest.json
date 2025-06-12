@@ -1,8 +1,0 @@
-{
-  "/tutors/page": "app/tutors/page.js",
-  "/lecturer/page": "app/lecturer/page.js",
-  "/courses/page": "app/courses/page.js",
-  "/sign-in/page": "app/sign-in/page.js",
-  "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js"
-}

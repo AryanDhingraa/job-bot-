@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/frontend/node_modules
+/admin-frontend/node_modules
+/backend/node_modules
 /.pnp
 .pnp.js
 
@@ -10,10 +13,14 @@
 
 # next.js
 /.next/
+/frontend/.next/
+/admin-frontend/.next/
 /out/
 
 # production
 /build
+/frontend/build
+/admin-frontend/build
 
 # misc
 .DS_Store
@@ -26,6 +33,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
@@ -33,3 +41,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.idea/
+.vscode/
+
+# Large files
+*.pack
+*.node

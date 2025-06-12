@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,18 +40,7 @@ export default function ProfilePage() {
   });
   const router = useRouter();
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const getToken = () => {
-    if (typeof window !== 'undefined') {
-      return window.localStorage?.getItem('token');
-    }
-    return null;
-  };
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     setLoading(true);
     let cachedUser = null;
     if (typeof window !== 'undefined') {
@@ -101,6 +90,17 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
+  }, [router]);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
+
+  const getToken = () => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage?.getItem('token');
+    }
+    return null;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

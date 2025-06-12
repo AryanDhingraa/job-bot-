@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,11 +59,6 @@ export default function LecturerPortal() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'tutor' | 'lab_assistant'>('all');
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
-  useEffect(() => {
-    fetchApplications();
-    fetchDashboardStats();
-  }, []);
-
   const getToken = () => {
     if (typeof window !== 'undefined') {
       return window.localStorage?.getItem('token');
@@ -71,7 +66,7 @@ export default function LecturerPortal() {
     return null;
   };
 
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) {
@@ -87,9 +82,9 @@ export default function LecturerPortal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) {
@@ -104,7 +99,12 @@ export default function LecturerPortal() {
       console.error('Error fetching dashboard stats:', error);
       toast.error('Failed to fetch dashboard statistics');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchApplications();
+    fetchDashboardStats();
+  }, [fetchApplications, fetchDashboardStats]);
 
   const handleStatusUpdate = async (applicationId: number, newStatus: 'accepted' | 'rejected') => {
     try {

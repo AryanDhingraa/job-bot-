@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,10 +22,6 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
   const getToken = () => {
     if (typeof window !== 'undefined') {
       return window.localStorage.getItem('token');
@@ -33,7 +29,7 @@ export default function CoursesPage() {
     return null;
   };
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
       const token = getToken();
@@ -53,7 +49,11 @@ export default function CoursesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
 
   const handleApplyNow = async (courseId: number) => {
     const token = getToken();

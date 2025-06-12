@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -65,7 +65,7 @@ declare global {
   }
 }
 
-export default function TutorPortal() {
+function TutorPortalContent() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,43 +83,6 @@ export default function TutorPortal() {
   const searchParams = useSearchParams();
 
   console.log("Current searchTerm:", searchTerm); // Added for debugging
-
-  useEffect(() => {
-    const initialCourseId = searchParams.get('courseId');
-
-    const fetchCoursesAndSetInitial = async () => {
-      try {
-        const token = getToken();
-        if (!token) {
-          toast.error('Authentication required');
-          setLoading(false); // Stop loading if no token
-          return;
-        }
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setCourses(response.data);
-
-        // If initialCourseId is present, try to pre-select the course
-        if (initialCourseId) {
-          const courseToSelect = response.data.find(
-            (course: Course) => course.id === parseInt(initialCourseId)
-          );
-          if (courseToSelect) {
-            setSelectedCourse(courseToSelect.id);
-            setSearchTerm(courseToSelect.name); // Set search term to course name
-          }
-        }
-      } catch (error) {
-        toast.error('Failed to fetch courses');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCoursesAndSetInitial();
-    fetchApplications();
-  }, [searchParams]); // Depend on searchParams to re-run when query changes
 
   const getToken = () => {
     if (typeof window !== 'undefined') {
@@ -144,7 +107,7 @@ export default function TutorPortal() {
     }
   };
 
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) {
@@ -160,7 +123,42 @@ export default function TutorPortal() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const fetchCoursesAndSetInitial = useCallback(async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        setLoading(false);
+        return;
+      }
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCourses(response.data);
+
+      if (searchParams.get('courseId')) {
+        const initialCourseId = searchParams.get('courseId');
+        const courseToSelect = response.data.find(
+          (course: Course) => course.id === parseInt(initialCourseId!)
+        );
+        if (courseToSelect) {
+          setSelectedCourse(courseToSelect.id);
+          setSearchTerm(courseToSelect.name);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to fetch courses');
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchCoursesAndSetInitial();
+    fetchApplications();
+  }, [searchParams, fetchApplications, fetchCoursesAndSetInitial]);
 
   const validateForm = () => {
     let valid = true;
@@ -371,7 +369,7 @@ export default function TutorPortal() {
                 <div className="text-center py-4">Loading applications...</div>
               ) : applications.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground">
-                  You haven't submitted any applications yet.
+                  You haven&apos;t submitted any applications yet.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -413,5 +411,14 @@ export default function TutorPortal() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// Keep the default export with Suspense
+export default function TutorsPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading...</div>}>
+      <TutorPortalContent />
+    </Suspense>
   );
 }

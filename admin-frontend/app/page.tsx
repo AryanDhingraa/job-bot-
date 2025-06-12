@@ -16,7 +16,7 @@ interface User {
   email: string;
   role: string;
   is_blocked: boolean;
-  assignedCourses?: Course[]; // Added for lecturer role
+  assignedCourses?: Course[];
 }
 
 interface Course {
@@ -25,8 +25,7 @@ interface Course {
   description: string;
   code: string;
   semester: string;
-  lecturer?: User; // Added to show assigned lecturer
-  // Add other course-related fields as needed
+  lecturer?: User;
 }
 
 type Application = {
@@ -90,7 +89,6 @@ const GET_APPLICATIONS = gql`
         semester
       }
       status
-      # Add other application fields here
     }
   }
 `;
@@ -197,7 +195,6 @@ export default function AdminDashboard() {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseDescription, setNewCourseDescription] = useState('');
-  const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
   const [newApplicationStatus, setNewApplicationStatus] = useState<string>('');
   const [selectedLecturerIdForAssignment, setSelectedLecturerIdForAssignment] = useState<string | null>(null);
   const [selectedCourseIdForAssignment, setSelectedCourseIdForAssignment] = useState<string | null>(null);
@@ -209,10 +206,7 @@ export default function AdminDashboard() {
   const [editCourseName, setEditCourseName] = useState('');
   const [editCourseSemester, setEditCourseSemester] = useState('');
   const [editCourseDescription, setEditCourseDescription] = useState('');
-
   const [chosenCandidatesByCourse, setChosenCandidatesByCourse] = useState<Record<string, string[]>>({});
-  const [coursesWithApplicantCount, setCoursesWithApplicantCount] = useState<Record<string, number>>({});
-
   const [unavailableCandidates, setUnavailableCandidates] = useState<Array<{
     id: number;
     username: string;
@@ -226,7 +220,6 @@ export default function AdminDashboard() {
     if (user) {
       setCurrentUserRole(JSON.parse(user).role);
     } else {
-      // Redirect to sign-in if no user is found
       router.push('/sign-in');
     }
   }, [router]);
@@ -236,56 +229,35 @@ export default function AdminDashboard() {
     fetchPolicy: 'network-only',
   });
 
-  const { loading: coursesLoading, error: coursesError, data: coursesData, refetch: refetchCourses } = useQuery<{ courses: Course[] }>(GET_COURSES, {
+  const { loading: coursesLoading, data: coursesData, refetch: refetchCourses } = useQuery<{ courses: Course[] }>(GET_COURSES, {
     skip: currentUserRole !== 'admin',
     fetchPolicy: 'network-only',
   });
 
-  const { loading: applicationsLoading, error: applicationsError, data: applicationsData, refetch: refetchApplications } = useQuery<{ applications: Application[] }>(GET_APPLICATIONS, {
+  const { loading: applicationsLoading, data: applicationsData } = useQuery<{ applications: Application[] }>(GET_APPLICATIONS, {
     skip: currentUserRole !== 'admin',
     fetchPolicy: 'network-only',
   });
 
-  const { loading: approvedAppsLoading, error: approvedAppsError, data: approvedAppsData, refetch: refetchApprovedApplications } = useQuery<{ approvedApplicationsByCourse: Application[] }>(GET_APPROVED_APPLICATIONS_BY_COURSE, {
+  const { data: approvedAppsData } = useQuery<{ approvedApplicationsByCourse: Application[] }>(GET_APPROVED_APPLICATIONS_BY_COURSE, {
     skip: currentUserRole !== 'admin',
     fetchPolicy: 'network-only',
   });
 
   useEffect(() => {
-    console.log('useEffect for reports triggered.');
-    console.log('applicationsData:', applicationsData);
-    console.log('approvedAppsData:', approvedAppsData);
-
-    if (applicationsData?.applications) {
-      const applicantCountMap: Record<string, number> = {};
-
-      applicationsData.applications.forEach(app => {
-        if (!applicantCountMap[app.course.name]) {
-          applicantCountMap[app.course.name] = 0;
-        }
-        applicantCountMap[app.course.name]++;
-      });
-
-      setCoursesWithApplicantCount(applicantCountMap);
-    }
-
     if (approvedAppsData?.approvedApplicationsByCourse) {
-      console.log('Processing approvedAppsData:', approvedAppsData.approvedApplicationsByCourse);
       const chosenMap: Record<string, string[]> = {};
-
       approvedAppsData.approvedApplicationsByCourse.forEach(app => {
         const courseName = app.course.name;
         const candidateEmail = app.user.email;
-
         if (!chosenMap[courseName]) {
           chosenMap[courseName] = [];
         }
         chosenMap[courseName].push(candidateEmail);
       });
-
       setChosenCandidatesByCourse(chosenMap);
     }
-  }, [applicationsData, approvedAppsData]);
+  }, [approvedAppsData]);
 
   useEffect(() => {
     if (subscriptionData?.candidateAvailabilityChanged) {
@@ -306,18 +278,10 @@ export default function AdminDashboard() {
   const [assignLecturerToCourseMutation] = useMutation(ASSIGN_LECTURER_TO_COURSE);
 
   const handleToggleBlock = async (userId: string, currentBlockStatus: boolean) => {
-    console.log(`Toggling block for user ID: ${userId}, currentBlockStatus: ${currentBlockStatus}`);
     try {
-      await toggleBlockMutation({
-        variables: {
-          userId: Number(userId),
-          isBlocked: !currentBlockStatus // Pass the inverted block status
-        }
-      });
+      await toggleBlockMutation({ variables: { userId: Number(userId), isBlocked: !currentBlockStatus } });
       await refetchUsers();
-    } catch (error) {
-      console.error('Error toggling user block status:', error);
-    }
+    } catch (error) { console.error('Error toggling user block status:', error); }
   };
 
   const handleAddCourse = async () => {
@@ -326,29 +290,14 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      await addCourseMutation({ 
-        variables: { 
-          code: newCourseCode, 
-          name: newCourseTitle, 
-          semester: newCourseSemester, 
-          description: newCourseDescription 
-        }
-      });
+      await addCourseMutation({ variables: { code: newCourseCode, name: newCourseTitle, semester: newCourseSemester, description: newCourseDescription } });
       refetchCourses();
       toast.success('Course added successfully!');
       setNewCourseCode('');
       setNewCourseTitle('');
       setNewCourseSemester('');
       setNewCourseDescription('');
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Add course error:", error);
-        toast.error(`Failed to add course: ${error.message}`);
-      } else {
-        console.error("Add course unknown error:", error);
-        toast.error('An unknown error occurred while adding course.');
-      }
-    }
+    } catch (error: any) { toast.error(error.message || 'Failed to add course'); }
   };
 
   const handleEditCourse = (course: Course) => {
@@ -362,82 +311,40 @@ export default function AdminDashboard() {
 
   const handleSaveEditedCourse = async () => {
     if (!currentEditingCourse) return;
-
     try {
-      await updateCourseMutation({
-        variables: {
-          id: currentEditingCourse.id,
-          code: editCourseCode,
-          name: editCourseName,
-          semester: editCourseSemester,
-          description: editCourseDescription,
-        },
-      });
+      await updateCourseMutation({ variables: { id: currentEditingCourse.id, code: editCourseCode, name: editCourseName, semester: editCourseSemester, description: editCourseDescription } });
       refetchCourses();
       toast.success('Course updated successfully!');
       setIsEditModalOpen(false);
       setCurrentEditingCourse(null);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Save edited course error:", error);
-        toast.error(`Failed to update course: ${error.message}`);
-      } else {
-        console.error("Save edited course unknown error:", error);
-        toast.error('An unknown error occurred while saving course.');
-      }
-    }
+    } catch (error: any) { toast.error(error.message || 'Failed to update course'); }
   };
 
   const handleDeleteCourse = async (courseId: number) => {
-    if (!confirm("Are you sure you want to delete this course?")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to delete this course?")) return;
     try {
-      await deleteCourseMutation({ 
-        variables: { 
-          id: Number(courseId) // Ensure courseId is a number
-        }
-      });
+      await deleteCourseMutation({ variables: { id: Number(courseId) } });
       await refetchCourses();
       toast.success('Course deleted successfully!');
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Delete course error:", error);
-        toast.error(`Failed to delete course: ${error.message}`);
-      } else {
-        console.error("Delete course unknown error:", error);
-        toast.error('An unknown error occurred while deleting course.');
-      }
-    }
+    } catch (error: any) { toast.error(error.message || 'Failed to delete course'); }
   };
 
   const handleUpdateApplicationStatus = async (applicationId: string, status: string) => {
-    console.log(`Updating application ID: ${applicationId} to status: ${status}`);
     if (!status || !['pending', 'accepted', 'rejected', 'approved'].includes(status)) {
       toast.error('Please select a valid status for the application.');
       return;
     }
     try {
       await updateApplicationStatusMutation({
-        variables: {
-          applicationId: Number(applicationId),
-          status
-        },
-        refetchQueries: [
-          { query: GET_APPLICATIONS },
-          { query: GET_APPROVED_APPLICATIONS_BY_COURSE }
-        ]
+        variables: { applicationId: Number(applicationId), status },
+        refetchQueries: [{ query: GET_APPLICATIONS }, { query: GET_APPROVED_APPLICATIONS_BY_COURSE }]
       });
       toast.success('Application status updated successfully!');
-    } catch (error) {
-      console.error('Error updating application status:', error);
-      toast.error('Failed to update application status');
-    }
+    } catch (error) { console.error('Error updating application status:', error); toast.error('Failed to update application status'); }
   };
 
   const handleViewApplication = (applicationId: number) => {
     toast.info(`Viewing details for Application ID: ${applicationId}`);
-    // In a real application, you would navigate to a detailed view or open a modal here
   };
 
   const handleAssignLecturerToCourse = async () => {
@@ -445,27 +352,13 @@ export default function AdminDashboard() {
       toast.error('Please select both a lecturer and a course to assign.');
       return;
     }
-
     try {
-      await assignLecturerToCourseMutation({
-        variables: {
-          courseId: parseInt(selectedCourseIdForAssignment),
-          lecturerId: parseInt(selectedLecturerIdForAssignment),
-        },
-      });
+      await assignLecturerToCourseMutation({ variables: { courseId: parseInt(selectedCourseIdForAssignment), lecturerId: parseInt(selectedLecturerIdForAssignment) } });
       refetchCourses();
       toast.success('Lecturer assigned to course successfully!');
       setSelectedLecturerIdForAssignment(null);
       setSelectedCourseIdForAssignment(null);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Assign lecturer to course error:", error);
-        toast.error(`Failed to assign lecturer to course: ${error.message}`);
-      } else {
-        console.error("Assign lecturer to course unknown error:", error);
-        toast.error('An unknown error occurred while assigning lecturer to course.');
-      }
-    }
+    } catch (error: any) { toast.error(error.message || 'Failed to assign lecturer to course'); }
   };
 
   if (currentUserRole && currentUserRole !== 'admin') {
@@ -502,7 +395,6 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <h1 className="text-4xl font-bold pb-4">Admin Dashboard</h1>
 
-          {/* Users Section */}
           <div className="mb-12">
             <h2 className="text-3xl font-semibold pb-4">Users ({usersData?.users?.length || 0})</h2>
             <div className="overflow-x-auto rounded-lg border border-gray-200">
@@ -521,34 +413,9 @@ export default function AdminDashboard() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.id}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                          user.role === 'lecturer' ? 'bg-blue-100 text-blue-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.is_blocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {user.is_blocked ? 'Yes' : 'No'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => handleToggleBlock(String(user.id), user.is_blocked)}
-                          className={
-                            user.is_blocked 
-                              ? "bg-green-600 hover:bg-green-700 text-white"
-                              : "bg-red-600 hover:bg-red-700 text-white"
-                          }
-                        >
-                          {user.is_blocked ? "Unblock" : "Block"}
-                        </Button>
-                      </TableCell>
+                      <TableCell><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : user.role === 'lecturer' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{user.role}</span></TableCell>
+                      <TableCell><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_blocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>{user.is_blocked ? 'Yes' : 'No'}</span></TableCell>
+                      <TableCell><Button onClick={() => handleToggleBlock(String(user.id), user.is_blocked)} className={user.is_blocked ? "bg-green-600 hover:bg-green-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}>{user.is_blocked ? "Unblock" : "Block"}</Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -556,240 +423,53 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Add New Course Section */}
           <div className="mb-12">
             <h2 className="text-3xl font-semibold pb-4">Add New Course</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="courseCode">Course Code</Label>
-                <Input
-                  id="courseCode"
-                  type="text"
-                  placeholder="e.g., COMP101"
-                  value={newCourseCode}
-                  onChange={(e) => setNewCourseCode(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="courseName">Course Name</Label>
-                <Input
-                  id="courseName"
-                  type="text"
-                  placeholder="Enter course name"
-                  value={newCourseTitle}
-                  onChange={(e) => setNewCourseTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="courseSemester">Course Semester</Label>
-                <Input
-                  id="courseSemester"
-                  type="text"
-                  placeholder="e.g., Fall 2024"
-                  value={newCourseSemester}
-                  onChange={(e) => setNewCourseSemester(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="courseDescription">Course Description</Label>
-                <Input
-                  id="courseDescription"
-                  type="text"
-                  placeholder="Enter course description"
-                  value={newCourseDescription}
-                  onChange={(e) => setNewCourseDescription(e.target.value)}
-                />
-              </div>
+              <div className="space-y-2"><Label htmlFor="courseCode">Course Code</Label><Input id="courseCode" type="text" placeholder="e.g., COMP101" value={newCourseCode} onChange={(e) => setNewCourseCode(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="courseName">Course Name</Label><Input id="courseName" type="text" placeholder="Enter course name" value={newCourseTitle} onChange={(e) => setNewCourseTitle(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="courseSemester">Course Semester</Label><Input id="courseSemester" type="text" placeholder="e.g., Fall 2024" value={newCourseSemester} onChange={(e) => setNewCourseSemester(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="courseDescription">Course Description</Label><Input id="courseDescription" type="text" placeholder="Enter course description" value={newCourseDescription} onChange={(e) => setNewCourseDescription(e.target.value)} /></div>
             </div>
-            <div className="mt-4">
-              <Button 
-                onClick={handleAddCourse}
-                className="w-fit"
-              >
-                Add Course
-              </Button>
-            </div>
+            <div className="mt-4"><Button onClick={handleAddCourse} className="w-fit">Add Course</Button></div>
           </div>
 
-          {/* Assign Lecturer Section */}
           <div className="mb-12">
             <h2 className="text-3xl font-semibold pb-4">Assign Lecturer to Course</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="selectLecturer">Select Lecturer</Label>
-                <Select onValueChange={setSelectedLecturerIdForAssignment} value={selectedLecturerIdForAssignment || ""}>
-                  <SelectTrigger id="selectLecturer" className="w-full">
-                    <SelectValue placeholder="Choose a lecturer" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50 relative shadow-lg">
-                    {usersData?.users?.filter(user => user.role === 'lecturer').map(lecturer => (
-                      <SelectItem key={lecturer.id} value={String(lecturer.id)}>
-                        {lecturer.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="selectCourse">Select Course</Label>
-                <Select onValueChange={setSelectedCourseIdForAssignment} value={selectedCourseIdForAssignment || ""}>
-                  <SelectTrigger id="selectCourse" className="w-full">
-                    <SelectValue placeholder="Choose a course" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white z-50 relative shadow-lg">
-                    {coursesData?.courses?.map(course => (
-                      <SelectItem key={course.id} value={String(course.id)}>
-                        {course.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="space-y-2"><Label htmlFor="selectLecturer">Select Lecturer</Label><Select onValueChange={setSelectedLecturerIdForAssignment} value={selectedLecturerIdForAssignment || ""}><SelectTrigger id="selectLecturer" className="w-full"><SelectValue placeholder="Choose a lecturer" /></SelectTrigger><SelectContent className="bg-white z-50 relative shadow-lg">{usersData?.users?.filter(user => user.role === 'lecturer').map(lecturer => (<SelectItem key={lecturer.id} value={String(lecturer.id)}>{lecturer.email}</SelectItem>))}</SelectContent></Select></div>
+              <div className="space-y-2"><Label htmlFor="selectCourse">Select Course</Label><Select onValueChange={setSelectedCourseIdForAssignment} value={selectedCourseIdForAssignment || ""}><SelectTrigger id="selectCourse" className="w-full"><SelectValue placeholder="Choose a course" /></SelectTrigger><SelectContent className="bg-white z-50 relative shadow-lg">{coursesData?.courses?.map(course => (<SelectItem key={course.id} value={String(course.id)}>{course.name}</SelectItem>))}</SelectContent></Select></div>
             </div>
-            <div className="mt-4">
-              <Button 
-                onClick={handleAssignLecturerToCourse}
-                className="w-fit"
-              >
-                Assign Lecturer
-              </Button>
-            </div>
+            <div className="mt-4"><Button onClick={handleAssignLecturerToCourse} className="w-fit">Assign Lecturer</Button></div>
           </div>
 
-          {/* Courses List */}
           <div className="mb-12">
             <h2 className="text-3xl font-semibold pb-4">Courses ({coursesData?.courses?.length || 0})</h2>
             <div className="overflow-x-auto rounded-lg border border-gray-200">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Semester</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Assigned Lecturer</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Code</TableHead><TableHead>Name</TableHead><TableHead>Semester</TableHead><TableHead>Description</TableHead><TableHead>Assigned Lecturer</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {coursesData?.courses?.map((course) => (
-                    <TableRow key={course.id}>
-                      <TableCell className="font-medium">{course.id}</TableCell>
-                      <TableCell>{course.code}</TableCell>
-                      <TableCell className="font-medium">{course.name}</TableCell>
-                      <TableCell>{course.semester}</TableCell>
-                      <TableCell>{course.description}</TableCell>
-                      <TableCell>
-                        {course.lecturer ? (
-                          <span className="text-blue-600">{course.lecturer.email}</span>
-                        ) : (
-                          <span className="text-gray-500">Not assigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleEditCourse(course)}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            onClick={() => handleDeleteCourse(course.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {coursesData?.courses?.map((course) => (<TableRow key={course.id}><TableCell className="font-medium">{course.id}</TableCell><TableCell>{course.code}</TableCell><TableCell className="font-medium">{course.name}</TableCell><TableCell>{course.semester}</TableCell><TableCell>{course.description}</TableCell><TableCell>{course.lecturer ? <span className="text-blue-600">{course.lecturer.email}</span> : <span className="text-gray-500">Not assigned</span>}</TableCell><TableCell><div className="flex space-x-2"><Button variant="outline" size="sm" onClick={() => handleEditCourse(course)}>Edit</Button><Button variant="destructive" size="sm" onClick={() => handleDeleteCourse(course.id)}>Delete</Button></div></TableCell></TableRow>))}
                 </TableBody>
               </Table>
             </div>
           </div>
 
-          {/* Applications List */}
           <div className="mb-12">
             <h2 className="text-3xl font-semibold pb-4">Applications ({applicationsData?.applications?.length || 0})</h2>
             <div className="overflow-x-auto rounded-lg border border-gray-200">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Applicant</TableHead>
-                    <TableHead>Course</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Applicant</TableHead><TableHead>Course</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {applicationsData?.applications.map((application) => (
-                    <TableRow key={application.id}>
-                      <TableCell className="font-medium">{application.id}</TableCell>
-                      <TableCell>{application.user.email}</TableCell>
-                      <TableCell>{application.course.name}</TableCell>
-                      <TableCell>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          application.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                          application.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {application.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Select
-                            defaultValue={application.status}
-                            onValueChange={(value) => {
-                              setSelectedApplicationId(application.id);
-                              setNewApplicationStatus(value);
-                            }}
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Update Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="accepted">Accepted</SelectItem>
-                              <SelectItem value="rejected">Rejected</SelectItem>
-                              <SelectItem value="approved">Approved</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleUpdateApplicationStatus(String(application.id), newApplicationStatus)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                          >
-                            Update
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleViewApplication(application.id)}
-                          >
-                            View
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {applicationsData?.applications.map((application) => (<TableRow key={application.id}><TableCell className="font-medium">{application.id}</TableCell><TableCell>{application.user.email}</TableCell><TableCell>{application.course.name}</TableCell><TableCell><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : application.status === 'accepted' ? 'bg-green-100 text-green-800' : application.status === 'approved' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>{application.status}</span></TableCell><TableCell><div className="flex items-center space-x-2"><Select defaultValue={application.status} onValueChange={(value) => setNewApplicationStatus(value)}><SelectTrigger className="w-[180px]"><SelectValue placeholder="Update Status" /></SelectTrigger><SelectContent><SelectItem value="pending">Pending</SelectItem><SelectItem value="accepted">Accepted</SelectItem><SelectItem value="rejected">Rejected</SelectItem><SelectItem value="approved">Approved</SelectItem></SelectContent></Select><Button size="sm" onClick={() => handleUpdateApplicationStatus(String(application.id), newApplicationStatus)} className="bg-blue-600 hover:bg-blue-700 text-white">Update</Button><Button variant="outline" size="sm" onClick={() => handleViewApplication(application.id)}>View</Button></div></TableCell></TableRow>))}
                 </TableBody>
               </Table>
             </div>
           </div>
-
-          {/* Admin Reports Section */}
+          
           {currentUserRole === 'admin' && (
             <div className="mt-8">
               <h2 className="text-3xl font-bold pb-6">Admin Reports</h2>
-              
-              {/* Candidates Chosen for Each Course */}
               <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
                 <div className="p-6">
                   <h3 className="text-xl font-semibold mb-4 text-gray-800">Candidates Chosen for Each Course</h3>
@@ -809,22 +489,15 @@ export default function AdminDashboard() {
                               </TableHeader>
                               <TableBody className="divide-y divide-gray-200">
                                 {candidates.map((candidate, index) => {
-                                  const app = approvedAppsData?.approvedApplicationsByCourse.find(
-                                    a => a.user.email === candidate
-                                  );
+                                  const app = approvedAppsData?.approvedApplicationsByCourse.find(a => a.user.email === candidate);
                                   return (
                                     <TableRow key={index}>
                                       <TableCell className="px-4 py-2 text-sm text-gray-700">{app?.user.username}</TableCell>
                                       <TableCell className="px-4 py-2 text-sm text-gray-700">{candidate}</TableCell>
                                       <TableCell className="px-4 py-2 text-sm text-gray-700">
                                         {app?.course.lecturer ? (
-                                          <div>
-                                            <div className="font-medium">{app.course.lecturer.username}</div>
-                                            <div className="text-xs text-gray-500">{app.course.lecturer.email}</div>
-                                          </div>
-                                        ) : (
-                                          <span className="text-gray-400">Not assigned</span>
-                                        )}
+                                          <div><div className="font-medium">{app.course.lecturer.username}</div><div className="text-xs text-gray-500">{app.course.lecturer.email}</div></div>
+                                        ) : (<span className="text-gray-400">Not assigned</span>)}
                                       </TableCell>
                                     </TableRow>
                                   );
@@ -835,13 +508,9 @@ export default function AdminDashboard() {
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-gray-500 italic">No candidates have been approved for any courses yet.</p>
-                  )}
+                  ) : (<p className="text-gray-500 italic">No candidates have been approved for any courses yet.</p>)}
                 </div>
-      </div>
-
-              {/* Unavailable Candidates Section */}
+              </div>
               {unavailableCandidates.length > 0 && (
                 <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
                   <h2 className="text-xl font-semibold mb-4">Unavailable Candidates</h2>
@@ -849,9 +518,7 @@ export default function AdminDashboard() {
                     {unavailableCandidates.map(candidate => (
                       <div key={candidate.id} className="p-4 bg-red-50 border border-red-200 rounded-md">
                         <p className="text-red-700 font-medium">{candidate.username}</p>
-                        {candidate.message && (
-                          <p className="text-red-600 mt-1">{candidate.message}</p>
-                        )}
+                        {candidate.message && (<p className="text-red-600 mt-1">{candidate.message}</p>)}
                       </div>
                     ))}
                   </div>
@@ -861,37 +528,20 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
-
-      {/* Edit Course Modal */}
+      
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Course</DialogTitle>
-            <DialogDescription>
-              Edit the details of the selected course.
-            </DialogDescription>
+            <DialogDescription>Edit the details of the selected course.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editCode" className="text-right">Code</Label>
-              <Input id="editCode" value={editCourseCode} onChange={(e) => setEditCourseCode(e.target.value)} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editName" className="text-right">Name</Label>
-              <Input id="editName" value={editCourseName} onChange={(e) => setEditCourseName(e.target.value)} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editSemester" className="text-right">Semester</Label>
-              <Input id="editSemester" value={editCourseSemester} onChange={(e) => setEditCourseSemester(e.target.value)} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="editDescription" className="text-right">Description</Label>
-              <Input id="editDescription" value={editCourseDescription} onChange={(e) => setEditCourseDescription(e.target.value)} className="col-span-3" />
-            </div>
-      </div>
-          <DialogFooter>
-            <Button onClick={handleSaveEditedCourse} variant="default">Save changes</Button>
-          </DialogFooter>
+            <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="editCode" className="text-right">Code</Label><Input id="editCode" value={editCourseCode} onChange={(e) => setEditCourseCode(e.target.value)} className="col-span-3" /></div>
+            <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="editName" className="text-right">Name</Label><Input id="editName" value={editCourseName} onChange={(e) => setEditCourseName(e.target.value)} className="col-span-3" /></div>
+            <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="editSemester" className="text-right">Semester</Label><Input id="editSemester" value={editCourseSemester} onChange={(e) => setEditCourseSemester(e.target.value)} className="col-span-3" /></div>
+            <div className="grid grid-cols-4 items-center gap-4"><Label htmlFor="editDescription" className="text-right">Description</Label><Input id="editDescription" value={editCourseDescription} onChange={(e) => setEditCourseDescription(e.target.value)} className="col-span-3" /></div>
+          </div>
+          <DialogFooter><Button onClick={handleSaveEditedCourse} variant="default">Save changes</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

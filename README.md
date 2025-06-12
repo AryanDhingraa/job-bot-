@@ -95,7 +95,7 @@ A full-stack application for managing courses, applications, and user roles in a
 ### Note
 The database schema and tables will be automatically created when you first run the backend server. 
 
-## Link for the project: {https://github.com/rmit-fsd-2025-s1/s4024089-s4088281-a1.git}
+## Link for the project: {https://github.com/rmit-fsd-2025-s1/s4088281-s4088281-a2.git}
 
 ## References:
 

@@ -1,114 +1,154 @@
-# Course Management System
+# 🎓 TeachTeam — Course Management App
 
-A full-stack application for managing courses, applications, and user roles in an educational institution.
+A full-stack web app that helps manage **courses**, **users**, and **applications** in a school or university. It supports three types of users:  
+👤 Candidates → Apply for courses  
+🎓 Lecturers → View & manage courses  
+🧑‍💼 Admins → Create courses & manage users
 
-## Code Structure
+Built using **React, Next.js, TypeScript, Express, PostgreSQL, and GraphQL**, this project runs from one codebase using a **monorepo** powered by `npm workspaces`.
+
+---
+
+## 🛠️ What’s Inside?
+
+### 🔗 Tech Stack
+- **Frontend (User & Admin):** Next.js + Tailwind CSS
+- **Backend:** Node.js + Express + GraphQL + PostgreSQL
+- **Auth:** JWT
+- **Database:** PostgreSQL
+- **Monorepo:** npm workspaces
+
+---
+
+## 🗂️ Project Structure
 
 ```
-├── admin-frontend/                # Admin dashboard frontend
-│   ├── app/                      # Next.js app directory
-│   │   ├── page.tsx             # Main admin dashboard page
-│   │   └── layout.tsx           # Admin layout component
-│   ├── components/              # Admin-specific components
-│   └── types/                   # TypeScript type definitions
-│
-├── frontend/                     # Main application frontend
-│   ├── app/                     # Next.js app directory
-│   │   ├── page.tsx            # Home page
-│   │   ├── signin/             # Sign in page
-│   │   ├── signup/             # Sign up page
-│   │   └── layout.tsx          # Main layout component
-│   ├── components/             # Reusable components
-│   └── types/                  # TypeScript type definitions
-│
-├── backend/                      # Backend server
-│   ├── src/
-│   │   ├── entity/             # Database entities
-│   │   │   ├── User.ts
-│   │   │   ├── Course.ts
-│   │   │   ├── Application.ts
-│   │   │   └── LecturerCourse.ts
-│   │   │
-│   │   ├── graphql/            # GraphQL implementation
-│   │   │   ├── resolvers/      # GraphQL resolvers
-│   │   │   └── schema/         # GraphQL schema
-│   │   │
-│   │   └── data-source.ts      # Database configuration
-│   │
-│   └── docs/                   # Documentation
-│
-└── components/                   # Shared components
-    ├── ui/                     # UI components
-    └── forms/                  # Form components
+/
+├── frontend/           → Main website (candidates + lecturers)
+├── admin-frontend/     → Admin dashboard
+├── backend/            → API server
+├── components/         → Shared UI components
+└── package.json        → Root file for managing all apps
 ```
 
-## Quick Start Guide
+> This setup lets everything share dependencies and makes dev life easier.
 
-### Prerequisites
-- Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
-- npm package manager
+---
 
-### Running the Application
+## ⚙️ Getting Started
 
-1. **Start the Backend Server**
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
-   The backend server will run on http://localhost:4000
+### ✅ What You Need
 
-2. **Start the Main Frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-   The main application will run on http://localhost:3000
+- Node.js v18.18 or higher
+- npm v7 or higher
+- PostgreSQL installed and running
 
-3. **Start the Admin Dashboard**
-   ```bash
-   cd admin-frontend
-   npm install
-   npm run dev
-   ```
-   The admin dashboard will run on http://localhost:3001
+---
 
-### Accessing the Application
-- Main Application: http://localhost:3000
-- Admin Dashboard: http://localhost:3001
-- GraphQL Playground: http://localhost:5000/graphql
+### 1️⃣ Set Up the Database
 
-### Default Admin Credentials
-- Email: admin@teachteam.com
-- Password: password123
+1. Open your PostgreSQL client (e.g. pgAdmin, DBeaver, CLI).
+2. Create a new database called `teachteam_db` (or any name).
+3. Save your database **host**, **port**, **username**, and **password** — you’ll need these soon.
 
-### Features
-- User registration and authentication
-- Course management (create, read, update, delete)
-- Application management
-- User management (block/unblock users)
-- Application status tracking
+---
 
-### Note
-The database schema and tables will be automatically created when you first run the backend server. 
+### 2️⃣ Add Environment Files
 
-## Link for the project: {https://github.com/rmit-fsd-2025-s1/s4088281-s4088281-a2.git}
+You'll need to create `.env` files for the backend and both frontends.
 
-## References:
+#### 🔐 `backend/.env`
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+DB_NAME=teachteam_db
 
-- https://lovable.dev has been used for taking design ideas for the homepage. None of the code has been copied from lovable, was only used for design references.
-- https://rmit.instructure.com/courses/141509/modules has been used for reference for developing pages such as sign in.
+JWT_SECRET=some_super_secure_key
+```
 
-## Extensions:
+#### 🌐 `frontend/.env.local` and `admin-frontend/.env.local`
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5001
+```
 
-- https://www.cursor.com has been used for correcting errors in the file as an visual studio code extension.
-- https://chatgpt.com has been used as generative AI extension to develop lorem possum text used on the homepage, not of the code has been referenced from it.
-- Tailwind CSS Intellisense has been used for syntax highlighting and error fixing.
+> These tell the frontend where to find the backend API.
+
+---
+
+### 3️⃣ Install Everything
+
+From the root folder:
+
+```bash
+npm install
+```
+
+This sets up **all workspaces** in one shot.
+
+---
+
+### 4️⃣ Run the App
+
+```bash
+npm run dev
+```
+
+This starts:
+
+- Backend API → [http://localhost:5001](http://localhost:5001)
+- Main Website → [http://localhost:3000](http://localhost:3000)
+- Admin Dashboard → [http://localhost:3001](http://localhost:3001)
+
+You’ll see separate logs in your terminal for each one.
+
+---
+
+### 5️⃣ Create Admin Account
+
+To test admin features:
+
+1. Go to [http://localhost:3000/sign-up](http://localhost:3000/sign-up)
+2. Sign up with:
+   - **Username:** `admin`
+   - **Email:** `admin@team.com`
+   - **Password:** `password123`
+   - **Role:** `Admin`
+
+---
+
+## 💻 How to Access Everything
+
+| Section          | URL                           |
+|------------------|-------------------------------|
+| Main Website     | http://localhost:3000         |
+| Admin Dashboard  | http://localhost:3001         |
+| GraphQL API      | http://localhost:5001/graphql |
+
+---
+
+## 📦 GitHub Repo
+
+Here’s the full code on GitHub:  
+🔗 https://github.com/rmit-fsd-2025-s1/s4088281-s4088281-a2.git
+
+---
+
+## 🧠 Tools + Credits
+
+- **lovable.dev** → design inspo  
+- **RMIT Canvas** → base UI structure  
+- **Cursor IDE** → helped clean up some code  
+- **ChatGP** → placeholder content & logic support  
+- **VS Code Extensions**: Tailwind IntelliSense, ESLint, Prettier
+
+---
+
+> Made with way too many coffees, late nights, and some solid vibes 😎
+
 
 Pages are majorly deveoped in app instead of src file for ease of use and better understanding of the project.
-
 ## Note: Major code has been pushed at the end, because a wrong file was selected earlier due to system crash.
 
 ## Node Modules used for development
@@ -133,7 +173,6 @@ tailwindcss (v4.x) - Utility-first CSS framework
 postcss - CSS transformer
 styled-jsx - CSS-in-JS solution
 lightningcss - Fast CSS parser/transformer
-
 Type Definitions:
 @types/node
 @types/react

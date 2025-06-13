@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -31,15 +31,18 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<UserProfile | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = window.localStorage.getItem('user');
       if (storedUser) {
         setLoggedInUser(JSON.parse(storedUser));
+      } else {
+        setLoggedInUser(null);
       }
     }
-  }, []);
+  }, [pathname]);
 
   const handleSignOut = () => {
     if (typeof window !== 'undefined') {
@@ -57,7 +60,7 @@ export default function Header() {
     } else if (username.length > 0) {
       return username.substring(0, 2).toUpperCase();
     } else {
-      return 'U'; // Default for unknown user
+      return 'U';
     }
   };
 

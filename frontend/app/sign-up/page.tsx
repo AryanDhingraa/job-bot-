@@ -32,7 +32,6 @@ export default function SignUpPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [id]: value }));
-    // Clear error for the field as user types
     setErrors((prevErrors) => ({ ...prevErrors, [id]: '' }));
   };
 
@@ -89,10 +88,7 @@ export default function SignUpPage() {
     try {
       const user = await authService.signUp(formData);
 
-      // No token is returned on signup, only on sign-in
-      // localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-
       toast.success('Account created successfully!');
 
       switch (user.role) {
@@ -176,7 +172,7 @@ export default function SignUpPage() {
               <Label htmlFor="role">Role</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value) => handleChange({ target: { id: 'role', value } } as React.ChangeEvent<HTMLSelectElement>)}
+                onValueChange={(value) => handleChange({ target: { id: 'role', value } } as any)}
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />
@@ -184,7 +180,6 @@ export default function SignUpPage() {
                 <SelectContent>
                   <SelectItem value="candidate">Candidate</SelectItem>
                   <SelectItem value="lecturer">Lecturer</SelectItem>
-                  {/* Admin role can be added here if needed for direct sign-up, or handled separately */}
                 </SelectContent>
               </Select>
             </div>

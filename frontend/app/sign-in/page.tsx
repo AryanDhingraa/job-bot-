@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { authService } from '@/lib/auth';
+import { authService, SignInData } from '@/lib/auth';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,74 +17,50 @@ export default function SignInPage() {
     email: '',
     password: '',
   });
-
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-  });
+  const [serverError, setServerError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [id]: value }));
-    setErrors((prevErrors) => ({ ...prevErrors, [id]: '' }));
-  };
-
-  const validateForm = () => {
-    let valid = true;
-    const newErrors = { email: '', password: '' };
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-      valid = false;
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-      valid = false;
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-      valid = false;
-    } else if (formData.password.length < 8) { // Basic length check, adjust as per backend complexity
-      newErrors.password = 'Password must be at least 8 characters long';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
+    setServerError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Please correct the errors in the form.');
-      return;
+    setServerError('');
+    setLoading(true);
+
+    // FIX: Prepare the data to be sent to the backend.
+    let dataToSend: SignInData = { ...formData };
+
+    // FIX: Implement the special exception for the 'admin' user.
+    if (formData.email.toLowerCase() === 'admin') {
+      dataToSend.email = 'admin@team.com';
     }
 
-    setLoading(true);
     try {
-      const { user, token } = await authService.signIn(formData);
+      // Use the 'dataToSend' object which may have been transformed.
+      const { user, token } = await authService.signIn(dataToSend);
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
       toast.success('Successfully signed in!');
       
-      switch (user.role) {
-        case 'candidate':
-          router.push('/tutors');
-          break;
-        case 'lecturer':
-          router.push('/lecturer');
-          break;
-        case 'admin':
-          router.push('/admin');
-          break;
-        default:
-          router.push('/');
+      if (user.role === 'admin') {
+        // If the user is admin, perform a full page redirect to the admin portal
+        if (typeof window !== "undefined") {
+          window.location.href = 'http://localhost:3001/sign-in'; 
+        }
+      } else {
+        // For other users, use Next.js router
+        router.push(user.role === 'lecturer' ? '/lecturer' : '/tutors');
       }
+
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to sign in');
+      const message = error.response?.data?.message || 'Failed to sign in. Please try again.';
+      setServerError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -99,16 +75,20 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {serverError && (
+              <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-sm text-destructive">
+                <p>{serverError}</p>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 placeholder="m@example.com"
                 value={formData.email}
                 onChange={handleChange}
               />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -119,13 +99,12 @@ export default function SignInPage() {
                 value={formData.password}
                 onChange={handleChange}
               />
-              {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <div className="text-center text-sm text-gray-500">
-              Don&apos;t have an account?{' '}
+              Don't have an account?{' '}
               <Link href="/sign-up" className="font-medium text-primary hover:underline">
                 Sign Up
               </Link>

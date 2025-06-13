@@ -9,36 +9,47 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
+    let emailToSend = email;
+
+    if (email.toLowerCase() === 'admin') {
+      emailToSend = 'admin@team.com';
+    }
 
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/signin`, {
-        email,
+        email: emailToSend,
         password,
       });
 
       const { token, user } = response.data;
-      console.log('User object from backend:', user);
-
+      
       if (user.role !== 'admin') {
         setError('Access denied. Only administrators can access this panel.');
+        setLoading(false);
         return;
       }
-
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      router.push('/');
+      
+      // Since we are already inside the admin app, redirect to the root dashboard page.
+      window.location.href = '/';
+
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-      setError(err.response?.data?.message || 'An error occurred during sign in');
-      } else if (err instanceof Error) {
-        setError(err.message);
+        setError(err.response?.data?.message || 'An error occurred during sign in');
       } else {
         setError('An unknown error occurred during sign in');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,11 +67,11 @@ export default function SignIn() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
+              Username or Email
             </label>
             <input
               id="email"
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -85,8 +96,9 @@ export default function SignIn() {
           <button
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+            disabled={loading}
           >
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>

@@ -145,7 +145,7 @@ Here’s the full code on GitHub:
 
 ---
 
-> Made with way too many coffees, late nights, and some solid vibes 😎
+> Made with way too many coffees, late nights,some solid vibes and all by myself 😎
 
 
 Pages are majorly deveoped in app instead of src file for ease of use and better understanding of the project.

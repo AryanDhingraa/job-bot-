@@ -47,7 +47,7 @@ Built using **React, Next.js, TypeScript, Express, PostgreSQL, and GraphQL**, th
 
 ### 1️⃣ Set Up the Database
 
-1. Open your PostgreSQL client (e.g. pgAdmin, DBeaver, CLI).
+1. Open your MySQL Cloud "https://getmysql.com".
 2. Create a new database called `teachteam_db` (or any name).
 3. Save your database **host**, **port**, **username**, and **password** — you’ll need these soon.
 

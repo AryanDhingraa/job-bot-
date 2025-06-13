@@ -1,51 +1,40 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules
+/node_modules/
 
-# dependencies
-/node_modules
-/frontend/node_modules
-/admin-frontend/node_modules
-/backend/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/frontend/.next/
-/admin-frontend/.next/
-/out/
-
-# production
+# Build and Output Folders
+.next/
+/frontend/.next
+/admin-frontend/.next
+/backend/dist
 /build
-/frontend/build
-/admin-frontend/build
+/out
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Environment Variables
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# vercel
-.vercel
+# Documentation and Large Files (from your original file)
+*.pack
+*.pem
+ER diagram.png
 
-# typescript
+# IDE and System Files
+.vscode
+.idea/
+.DS_Store
+
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
-.idea/
-.vscode/
-
-# Large files
-*.pack
-*.node
+# Vercel
+.vercel

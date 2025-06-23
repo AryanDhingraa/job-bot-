@@ -8,7 +8,7 @@ import openai
 import google.generativeai as palm
 from datetime import datetime
 import json
-from werkzeug.urls import url_parse
+from urllib.parse import urlparse
 
 from app.forms import (
     LoginForm, RegistrationForm, ResumeForm, JobApplicationForm,
@@ -16,54 +16,32 @@ from app.forms import (
 )
 from app.ai_utils import analyze_job_description, generate_cover_letter, extract_resume_text
 
-main = Blueprint('main', __name__)
-auth = Blueprint('auth', __name__)
+bp = Blueprint('main', __name__)
+auth = Blueprint('auth', __name__, url_prefix='/auth')
 
-@main.route('/')
+@bp.route('/')
+@bp.route('/index')
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
-    return render_template('index.html')
+    return render_template('index.html', title='Home')
 
-@main.route('/dashboard')
+@bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Get statistics
-    stats = {
-        'total_applications': JobApplication.query.filter_by(user_id=current_user.id).count(),
-        'interviews': JobApplication.query.filter_by(user_id=current_user.id, status='interview').count(),
-        'pending': JobApplication.query.filter_by(user_id=current_user.id, status='applied').count(),
-        'success_rate': 0  # Calculate based on accepted vs total applications
-    }
-    
-    total = stats['total_applications']
-    accepted = JobApplication.query.filter_by(user_id=current_user.id, status='accepted').count()
-    stats['success_rate'] = round((accepted / total * 100) if total > 0 else 0)
-    
-    # Get recent applications
-    recent_applications = JobApplication.query.filter_by(user_id=current_user.id)\
-        .order_by(JobApplication.created_at.desc())\
-        .limit(5).all()
-    
-    # Get upcoming interviews
-    upcoming_interviews = JobApplication.query.filter_by(
-        user_id=current_user.id,
-        status='interview'
-    ).order_by(JobApplication.interview_date.asc()).limit(5).all()
-    
-    return render_template('dashboard.html',
-                         stats=stats,
-                         recent_applications=recent_applications,
-                         upcoming_interviews=upcoming_interviews)
+    resumes = Resume.query.filter_by(user_id=current_user.id).all()
+    applications = JobApplication.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html', title='Dashboard',
+                         resumes=resumes, applications=applications)
 
-@main.route('/resumes')
+@bp.route('/resumes')
 @login_required
 def resumes():
     resumes = Resume.query.filter_by(user_id=current_user.id)\
         .order_by(Resume.is_default.desc(), Resume.created_at.desc()).all()
     return render_template('resume/list.html', resumes=resumes)
 
-@main.route('/resume/upload', methods=['GET', 'POST'])
+@bp.route('/resume/upload', methods=['GET', 'POST'])
 @login_required
 def upload_resume():
     form = ResumeForm()
@@ -96,14 +74,14 @@ def upload_resume():
     
     return render_template('resume/upload.html', form=form)
 
-@main.route('/applications')
+@bp.route('/applications')
 @login_required
 def applications():
     applications = JobApplication.query.filter_by(user_id=current_user.id)\
         .order_by(JobApplication.created_at.desc()).all()
     return render_template('application/list.html', applications=applications)
 
-@main.route('/application/new', methods=['GET', 'POST'])
+@bp.route('/application/new', methods=['GET', 'POST'])
 @login_required
 def new_application():
     form = JobApplicationForm()
@@ -135,7 +113,7 @@ def new_application():
     
     return render_template('application/new.html', form=form)
 
-@main.route('/application/<int:id>')
+@bp.route('/application/<int:id>')
 @login_required
 def view_application(id):
     application = JobApplication.query.get_or_404(id)
@@ -143,7 +121,7 @@ def view_application(id):
         abort(403)
     return render_template('application/view.html', application=application)
 
-@main.route('/application/<int:id>/edit', methods=['GET', 'POST'])
+@bp.route('/application/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_application(id):
     application = JobApplication.query.get_or_404(id)
@@ -171,7 +149,7 @@ def edit_application(id):
     return render_template('application/edit.html', form=form, application=application)
 
 # API routes for AI features
-@main.route('/api/analyze', methods=['POST'])
+@bp.route('/api/analyze', methods=['POST'])
 @login_required
 def analyze():
     data = request.get_json()
@@ -186,7 +164,7 @@ def analyze():
     analysis = analyze_job_description(data['job_description'], resume.content)
     return jsonify(analysis)
 
-@main.route('/api/generate-cover-letter', methods=['POST'])
+@bp.route('/api/generate-cover-letter', methods=['POST'])
 @login_required
 def generate_cover_letter_api():
     data = request.get_json()
@@ -219,7 +197,7 @@ def login():
         db.session.commit()
         
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('main.dashboard')
         return redirect(next_page)
     
@@ -244,4 +222,29 @@ def register():
 @auth.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('main.index')) 
+    return redirect(url_for('main.index'))
+
+@auth.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        if user:
+            # Here you would typically send an email with a reset token
+            # For now, we'll just redirect to login with a message
+            flash('Check your email for instructions to reset your password', 'info')
+            return redirect(url_for('auth.login'))
+        flash('Email address not found', 'error')
+    return render_template('auth/reset_password_request.html',
+                         title='Reset Password', form=form)
+
+@auth.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    # Here you would typically verify the token and get the user
+    # For now, we'll just show an error message
+    flash('Invalid or expired reset token', 'error')
+    return redirect(url_for('auth.login')) 

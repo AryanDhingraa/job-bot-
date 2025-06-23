@@ -1,4 +1,4 @@
-2025-06-23 20:13:37,861 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+2025-06-23 20:22:54,993 ERROR: Exception on /dashboard [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -8,8 +8,10 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 34, in dashboard
+    return render_template('dashboard.html', title='Dashboard',
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
@@ -18,20 +20,20 @@ Traceback (most recent call last):
     self.environment.handle_exception()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 1, in top-level template code
     {% extends "base.html" %}
   File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
     {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 33, in block 'content'
+    <a href="{{ url_for('main.generate_cover_letter') }}" class="btn btn-info d-block py-3 text-white">
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
     return self.handle_url_build_error(error, endpoint, values)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
     rv = url_adapter.build(  # type: ignore[union-attr]
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:13:51,889 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'main.generate_cover_letter'. Did you mean 'main.generate_cover_letter_api' instead?
+2025-06-23 20:22:58,560 ERROR: Exception on /dashboard [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -41,8 +43,10 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 34, in dashboard
+    return render_template('dashboard.html', title='Dashboard',
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
@@ -51,20 +55,20 @@ Traceback (most recent call last):
     self.environment.handle_exception()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 1, in top-level template code
     {% extends "base.html" %}
   File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
     {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 33, in block 'content'
+    <a href="{{ url_for('main.generate_cover_letter') }}" class="btn btn-info d-block py-3 text-white">
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
     return self.handle_url_build_error(error, endpoint, values)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
     rv = url_adapter.build(  # type: ignore[union-attr]
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:14:43,685 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'main.generate_cover_letter'. Did you mean 'main.generate_cover_letter_api' instead?
+2025-06-23 20:23:00,555 ERROR: Exception on /dashboard [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -74,8 +78,10 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 34, in dashboard
+    return render_template('dashboard.html', title='Dashboard',
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
@@ -84,16 +90,33 @@ Traceback (most recent call last):
     self.environment.handle_exception()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 1, in top-level template code
     {% extends "base.html" %}
   File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
     {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 33, in block 'content'
+    <a href="{{ url_for('main.generate_cover_letter') }}" class="btn btn-info d-block py-3 text-white">
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
     return self.handle_url_build_error(error, endpoint, values)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
     rv = url_adapter.build(  # type: ignore[union-attr]
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'main.generate_cover_letter'. Did you mean 'main.generate_cover_letter_api' instead?
+2025-06-23 20:24:09,327 ERROR: Exception on /resume/upload [POST] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+Traceback (most recent call last):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 48, in upload_resume
+    if form.validate_on_submit():
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_wtf/form.py", line 86, in validate_on_submit
+    return self.is_submitted() and self.validate(extra_validators=extra_validators)
+TypeError: validate() got an unexpected keyword argument 'extra_validators'

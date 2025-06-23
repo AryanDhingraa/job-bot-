@@ -1,4 +1,13 @@
-2025-06-23 20:13:37,861 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+2025-06-23 19:56:24,814 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:58]
+2025-06-23 19:56:27,024 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:64]
+2025-06-23 19:57:30,353 ERROR: Exception on /auth/register [POST] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+Traceback (most recent call last):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/validators.py", line 401, in __call__
+    import email_validator
+ModuleNotFoundError: No module named 'email_validator'
+
+The above exception was the direct cause of the following exception:
+
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -8,7 +17,33 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 234, in register
+    if form.validate_on_submit():
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_wtf/form.py", line 86, in validate_on_submit
+    return self.is_submitted() and self.validate(extra_validators=extra_validators)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/form.py", line 329, in validate
+    return super().validate(extra)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/form.py", line 146, in validate
+    if not field.validate(self, extra):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/fields/core.py", line 246, in validate
+    stop_validation = self._run_validation_chain(form, chain)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/fields/core.py", line 266, in _run_validation_chain
+    validator(form, self)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/wtforms/validators.py", line 403, in __call__
+    raise Exception(
+Exception: Install 'email_validator' for email validation support.
+2025-06-23 19:57:30,360 ERROR: Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:42]
+2025-06-23 19:59:07,163 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+Traceback (most recent call last):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 226, in login
     return render_template('auth/login.html', title='Sign In', form=form)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
@@ -31,7 +66,8 @@ Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
 werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:13:51,889 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+2025-06-23 19:59:07,168 ERROR: Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:42]
+2025-06-23 19:59:19,314 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -41,7 +77,7 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 226, in login
     return render_template('auth/login.html', title='Sign In', form=form)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
@@ -64,36 +100,8 @@ Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
 werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:14:43,685 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
-Traceback (most recent call last):
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 872, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 870, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
-    return _render(app, template, context)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
-    rv = template.render(context)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 1301, in render
-    self.environment.handle_exception()
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
-    raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
-    {% extends "base.html" %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
-    {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
-    return self.handle_url_build_error(error, endpoint, values)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
-    rv = url_adapter.build(  # type: ignore[union-attr]
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
-    raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
+2025-06-23 19:59:19,319 ERROR: Server Error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application. [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:42]
+2025-06-23 20:03:48,033 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:58]
+2025-06-23 20:03:50,298 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:64]
+2025-06-23 20:04:00,198 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:58]
+2025-06-23 20:04:02,456 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:64]

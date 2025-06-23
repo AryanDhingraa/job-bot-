@@ -36,8 +36,8 @@ class ResumeForm(FlaskForm):
     resume_text = TextAreaField('Resume Text')
     is_default = BooleanField('Set as Default Resume')
 
-    def validate(self):
-        if not super().validate():
+    def validate(self, extra_validators=None):
+        if not super().validate(extra_validators=extra_validators):
             return False
         if not self.resume_file.data and not self.resume_text.data:
             self.resume_text.errors.append('Please either upload a file or enter resume text')

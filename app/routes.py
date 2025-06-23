@@ -29,10 +29,26 @@ def index():
 @bp.route('/dashboard')
 @login_required
 def dashboard():
-    resumes = Resume.query.filter_by(user_id=current_user.id).all()
-    applications = JobApplication.query.filter_by(user_id=current_user.id).all()
+    # Statistics
+    total_applications = JobApplication.query.filter_by(user_id=current_user.id).count()
+    interviews = JobApplication.query.filter_by(user_id=current_user.id, status='interview').count()
+    pending = JobApplication.query.filter_by(user_id=current_user.id, status='applied').count()
+    accepted = JobApplication.query.filter_by(user_id=current_user.id, status='accepted').count()
+    success_rate = round((accepted / total_applications * 100) if total_applications > 0 else 0)
+    stats = {
+        'total_applications': total_applications,
+        'interviews': interviews,
+        'pending': pending,
+        'success_rate': success_rate
+    }
+    # Recent applications
+    recent_applications = JobApplication.query.filter_by(user_id=current_user.id)\
+        .order_by(JobApplication.created_at.desc()).limit(5).all()
+    # Upcoming interviews
+    upcoming_interviews = JobApplication.query.filter_by(user_id=current_user.id, status='interview')\
+        .order_by(JobApplication.application_date.asc()).limit(5).all()
     return render_template('dashboard.html', title='Dashboard',
-                         resumes=resumes, applications=applications)
+                         stats=stats, recent_applications=recent_applications, upcoming_interviews=upcoming_interviews)
 
 @bp.route('/resumes')
 @login_required
@@ -74,12 +90,29 @@ def upload_resume():
     
     return render_template('resume/upload.html', form=form)
 
+@bp.route('/generate-cover-letter', methods=['GET', 'POST'])
+@login_required
+def generate_cover_letter():
+    form = CoverLetterForm()
+    cover_letter = None
+    if form.validate_on_submit():
+        resume = Resume.query.filter_by(user_id=current_user.id, is_default=True).first()
+        if not resume:
+            flash('Please set a default resume first.', 'warning')
+        else:
+            cover_letter = generate_cover_letter(form.content.data, resume.content)
+    return render_template('generate_cover_letter.html', form=form, cover_letter=cover_letter)
+
 @bp.route('/applications')
 @login_required
 def applications():
     applications = JobApplication.query.filter_by(user_id=current_user.id)\
         .order_by(JobApplication.created_at.desc()).all()
-    return render_template('application/list.html', applications=applications)
+    # Calculate interview rate
+    total = len(applications)
+    interviews = len([a for a in applications if a.status == 'interview'])
+    interview_rate = round((interviews / total * 100) if total > 0 else 0, 1)
+    return render_template('application/list.html', applications=applications, interview_rate=interview_rate)
 
 @bp.route('/application/new', methods=['GET', 'POST'])
 @login_required
@@ -247,4 +280,27 @@ def reset_password(token):
     # Here you would typically verify the token and get the user
     # For now, we'll just show an error message
     flash('Invalid or expired reset token', 'error')
-    return redirect(url_for('auth.login')) 
+    return redirect(url_for('auth.login'))
+
+@bp.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@bp.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = ProfileForm(obj=current_user)
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        if form.new_password.data:
+            if current_user.check_password(form.current_password.data):
+                current_user.set_password(form.new_password.data)
+            else:
+                form.current_password.errors.append('Current password is incorrect.')
+                return render_template('edit_profile.html', form=form)
+        db.session.commit()
+        flash('Your profile has been updated.', 'success')
+        return redirect(url_for('main.profile'))
+    return render_template('edit_profile.html', form=form) 

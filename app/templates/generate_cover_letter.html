@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Generate Cover Letter</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.content.label(class="form-label") }}
+            {{ form.content(class="form-control") }}
+            {% for error in form.content.errors %}
+                <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Generate</button>
+    </form>
+    {% if cover_letter %}
+    <hr>
+    <h4>Generated Cover Letter</h4>
+    <pre class="bg-light p-3">{{ cover_letter }}</pre>
+    {% endif %}
+</div>
+{% endblock %} 

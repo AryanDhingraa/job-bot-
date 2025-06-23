@@ -303,4 +303,10 @@ def edit_profile():
         db.session.commit()
         flash('Your profile has been updated.', 'success')
         return redirect(url_for('main.profile'))
-    return render_template('edit_profile.html', form=form) 
+    return render_template('edit_profile.html', form=form)
+
+@bp.route('/interviews')
+@login_required
+def interviews():
+    interviews = JobApplication.query.filter_by(user_id=current_user.id, status='interview').order_by(JobApplication.application_date.asc()).all()
+    return render_template('interviews.html', interviews=interviews) 

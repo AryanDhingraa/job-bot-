@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Upcoming Interviews</h2>
+    {% if interviews %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Interview Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for interview in interviews %}
+            <tr>
+                <td>{{ interview.company_name }}</td>
+                <td>{{ interview.job_title }}</td>
+                <td>{{ interview.application_date.strftime('%Y-%m-%d') if interview.application_date }}</td>
+                <td>{{ interview.status|capitalize }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No upcoming interviews.</p>
+    {% endif %}
+</div>
+{% endblock %} 

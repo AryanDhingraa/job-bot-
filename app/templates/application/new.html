@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}New Application - Job Application Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-suggestion {
+        background-color: rgba(74, 144, 226, 0.1);
+        border-left: 4px solid var(--primary-color);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+    }
+
+    .skill-tag {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        margin: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .skill-match {
+        background-color: #28a745;
+    }
+
+    .skill-missing {
+        background-color: #dc3545;
+    }
+
+    .loading-spinner {
+        display: none;
+    }
+
+    .loading .loading-spinner {
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Main Form Column -->
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">New Job Application</h1>
+                    <p class="text-muted">Create a new job application and get AI assistance</p>
+                </div>
+                <a href="{{ url_for('main.applications') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Applications
+                </a>
+            </div>
+
+            <!-- Application Form -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('main.new_application') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Company Details -->
+                        <h5 class="card-title mb-4">Company Details</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="company_name" class="form-label">Company Name</label>
+                                {{ form.company_name(class="form-control", placeholder="Enter company name") }}
+                                {% for error in form.company_name.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="job_title" class="form-label">Job Title</label>
+                                {{ form.job_title(class="form-control", placeholder="Enter job title") }}
+                                {% for error in form.job_title.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Job Details -->
+                        <h5 class="card-title mb-4">Job Details</h5>
+                        <div class="mb-4">
+                            <label for="job_description" class="form-label">Job Description</label>
+                            {{ form.job_description(class="form-control", rows="10", placeholder="Paste the job description here") }}
+                            {% for error in form.job_description.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <button type="button" id="analyzeBtn" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-magic me-2"></i>Analyze with AI
+                                <div class="spinner-border spinner-border-sm loading-spinner" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="job_url" class="form-label">Job Posting URL</label>
+                            {{ form.job_url(class="form-control", placeholder="Enter the URL of the job posting") }}
+                            {% for error in form.job_url.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Resume Selection -->
+                        <h5 class="card-title mb-4">Resume</h5>
+                        <div class="mb-4">
+                            <label for="resume_id" class="form-label">Select Resume</label>
+                            {{ form.resume_id(class="form-select") }}
+                            {% for error in form.resume_id.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                Select the resume you want to use for this application.
+                                <a href="{{ url_for('main.upload_resume') }}">Upload a new resume</a>
+                            </div>
+                        </div>
+
+                        <!-- Cover Letter -->
+                        <h5 class="card-title mb-4">Cover Letter</h5>
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="generateCoverLetter">
+                                <label class="form-check-label" for="generateCoverLetter">
+                                    Generate a cover letter using AI
+                                </label>
+                            </div>
+                            {{ form.cover_letter(class="form-control", rows="10", placeholder="Enter your cover letter or let AI generate one") }}
+                            {% for error in form.cover_letter.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <button type="button" id="generateBtn" class="btn btn-outline-primary mt-2" disabled>
+                                <i class="fas fa-robot me-2"></i>Generate Cover Letter
+                                <div class="spinner-border spinner-border-sm loading-spinner" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Application Status -->
+                        <h5 class="card-title mb-4">Status</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Application Status</label>
+                                {{ form.status(class="form-select") }}
+                                {% for error in form.status.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="application_date" class="form-label">Application Date</label>
+                                {{ form.application_date(class="form-control", type="date") }}
+                                {% for error in form.application_date.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">Notes</label>
+                            {{ form.notes(class="form-control", rows="3", placeholder="Add any notes about this application") }}
+                            {% for error in form.notes.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" name="save_draft" class="btn btn-outline-secondary btn-lg px-4">
+                                Save as Draft
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Analysis Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="sticky-top" style="top: 2rem;">
+                <!-- AI Analysis Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-robot text-primary me-2"></i>AI Analysis
+                        </h5>
+                        <div id="aiAnalysis">
+                            <p class="text-muted">Click "Analyze with AI" to get insights about the job description and your resume match.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Match Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-check-circle text-success me-2"></i>Skills Match
+                        </h5>
+                        <div id="skillsMatch">
+                            <p class="text-muted">Skills matching will appear here after analysis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips Card -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>Tips
+                        </h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Customize your resume for each application
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Use keywords from the job description
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Write a personalized cover letter
+                            </li>
+                            <li>
+                                <i class="fas fa-check text-success me-2"></i>
+                                Keep track of application status
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable/disable cover letter generation button
+    document.getElementById('generateCoverLetter').addEventListener('change', function() {
+        document.getElementById('generateBtn').disabled = !this.checked;
+    });
+
+    // Handle AI analysis button click
+    document.getElementById('analyzeBtn').addEventListener('click', async function() {
+        const button = this;
+        const jobDescription = document.getElementById('job_description').value;
+        const resumeId = document.getElementById('resume_id').value;
+
+        if (!jobDescription) {
+            alert('Please enter a job description first.');
+            return;
+        }
+
+        if (!resumeId) {
+            alert('Please select a resume first.');
+            return;
+        }
+
+        // Show loading state
+        button.classList.add('loading');
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    job_description: jobDescription,
+                    resume_id: resumeId
+                })
+            });
+
+            const data = await response.json();
+
+            // Update AI analysis section
+            const aiAnalysis = document.getElementById('aiAnalysis');
+            aiAnalysis.innerHTML = `
+                <div class="ai-suggestion">
+                    <h6 class="mb-3">Job Analysis</h6>
+                    <p>${data.analysis}</p>
+                </div>
+            `;
+
+            // Update skills match section
+            const skillsMatch = document.getElementById('skillsMatch');
+            skillsMatch.innerHTML = `
+                <div class="mb-3">
+                    <h6 class="mb-2">Matching Skills</h6>
+                    ${data.matching_skills.map(skill => `
+                        <span class="skill-tag skill-match">${skill}</span>
+                    `).join('')}
+                </div>
+                <div>
+                    <h6 class="mb-2">Missing Skills</h6>
+                    ${data.missing_skills.map(skill => `
+                        <span class="skill-tag skill-missing">${skill}</span>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred during analysis. Please try again.');
+        } finally {
+            // Reset loading state
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
+    });
+
+    // Handle cover letter generation
+    document.getElementById('generateBtn').addEventListener('click', async function() {
+        const button = this;
+        const jobDescription = document.getElementById('job_description').value;
+        const resumeId = document.getElementById('resume_id').value;
+
+        if (!jobDescription) {
+            alert('Please enter a job description first.');
+            return;
+        }
+
+        if (!resumeId) {
+            alert('Please select a resume first.');
+            return;
+        }
+
+        // Show loading state
+        button.classList.add('loading');
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/api/generate-cover-letter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    job_description: jobDescription,
+                    resume_id: resumeId
+                })
+            });
+
+            const data = await response.json();
+
+            // Update cover letter textarea
+            document.getElementById('cover_letter').value = data.cover_letter;
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while generating the cover letter. Please try again.');
+        } finally {
+            // Reset loading state
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
+    });
+</script>
+{% endblock %} 

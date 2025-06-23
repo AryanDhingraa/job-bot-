@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Job Application Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">Land Your Dream Job with AI-Powered Assistance</h1>
+            <p class="lead mb-4">Automatically tailor your resume and generate personalized cover letters using advanced AI technology. Stand out from the competition and increase your chances of getting hired.</p>
+            {% if not current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+            </div>
+            {% else %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6">
+            <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643" 
+                 alt="Job Application Process" 
+                 class="img-fluid rounded shadow-lg">
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="display-5 fw-bold">Key Features</h2>
+            <p class="lead">Everything you need to streamline your job application process</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-file-alt fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Resume Tailoring</h3>
+                    <p class="card-text">Automatically customize your resume to match job descriptions using AI technology.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-pencil-alt fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Cover Letter Generation</h3>
+                    <p class="card-text">Create compelling, personalized cover letters in seconds with AI assistance.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-tasks fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4 mb-3">Application Tracking</h3>
+                    <p class="card-text">Keep track of all your job applications, interviews, and follow-ups in one place.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="display-5 fw-bold">How It Works</h2>
+            <p class="lead">Simple steps to optimize your job application process</p>
+        </div>
+        
+        <div class="col-md-3 text-center mb-4">
+            <div class="step-number mb-3">
+                <span class="bg-primary text-white rounded-circle d-inline-block p-3">1</span>
+            </div>
+            <h4>Upload Resume</h4>
+            <p>Upload your existing resume or create a new one from scratch</p>
+        </div>
+        
+        <div class="col-md-3 text-center mb-4">
+            <div class="step-number mb-3">
+                <span class="bg-primary text-white rounded-circle d-inline-block p-3">2</span>
+            </div>
+            <h4>Add Job Details</h4>
+            <p>Paste the job description or provide the job posting URL</p>
+        </div>
+        
+        <div class="col-md-3 text-center mb-4">
+            <div class="step-number mb-3">
+                <span class="bg-primary text-white rounded-circle d-inline-block p-3">3</span>
+            </div>
+            <h4>Generate Content</h4>
+            <p>Let AI tailor your resume and create a matching cover letter</p>
+        </div>
+        
+        <div class="col-md-3 text-center mb-4">
+            <div class="step-number mb-3">
+                <span class="bg-primary text-white rounded-circle d-inline-block p-3">4</span>
+            </div>
+            <h4>Apply with Confidence</h4>
+            <p>Submit your optimized application materials</p>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center">
+            <div class="p-5 bg-primary bg-opacity-10 rounded">
+                <h2 class="display-5 fw-bold mb-4">Ready to Start Your Job Search?</h2>
+                <p class="lead mb-4">Join thousands of job seekers who have successfully landed their dream jobs using our platform.</p>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">Get Started Now</a>
+                {% else %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg px-5">Go to Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

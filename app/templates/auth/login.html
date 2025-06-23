@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Job Application Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title mb-3">Welcome Back</h2>
+                        <p class="text-muted">Sign in to access your account</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            {{ form.email(class="form-control", placeholder="Enter your email") }}
+                            {% for error in form.email.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            {{ form.password(class="form-control", placeholder="Enter your password") }}
+                            {% for error in form.password.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            {{ form.remember_me(class="form-check-input") }}
+                            <label class="form-check-label" for="remember_me">Remember me</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary">Register</a></p>
+                        <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

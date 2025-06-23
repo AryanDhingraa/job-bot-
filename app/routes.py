@@ -309,4 +309,12 @@ def edit_profile():
 @login_required
 def interviews():
     interviews = JobApplication.query.filter_by(user_id=current_user.id, status='interview').order_by(JobApplication.application_date.asc()).all()
-    return render_template('interviews.html', interviews=interviews) 
+    return render_template('interviews.html', interviews=interviews)
+
+@bp.route('/resume/<int:id>')
+@login_required
+def view_resume(id):
+    resume = Resume.query.get_or_404(id)
+    if resume.user_id != current_user.id:
+        abort(403)
+    return render_template('resume/view.html', resume=resume) 

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ resume.title }}</h2>
+    <p><strong>Uploaded:</strong> {{ resume.created_at.strftime('%Y-%m-%d') if resume.created_at }}</p>
+    <p><strong>Default:</strong> {{ 'Yes' if resume.is_default else 'No' }}</p>
+    <hr>
+    <h4>Resume Content</h4>
+    <pre class="bg-light p-3">{{ resume.content }}</pre>
+    <a href="{{ url_for('main.resumes') }}" class="btn btn-secondary mt-3">Back to Resumes</a>
+</div>
+{% endblock %} 

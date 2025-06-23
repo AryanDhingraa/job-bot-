@@ -1,4 +1,4 @@
-2025-06-23 20:13:37,861 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+2025-06-23 20:14:59,481 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -31,7 +31,9 @@ Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
 werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:13:51,889 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+2025-06-23 20:15:15,774 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:53]
+2025-06-23 20:15:18,032 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:59]
+2025-06-23 20:15:46,786 ERROR: Exception on /auth/login [POST] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -41,30 +43,10 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
-    return _render(app, template, context)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
-    rv = template.render(context)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 1301, in render
-    self.environment.handle_exception()
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
-    raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
-    {% extends "base.html" %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
-    {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
-    return self.handle_url_build_error(error, endpoint, values)
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
-    rv = url_adapter.build(  # type: ignore[union-attr]
-  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
-    raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
-2025-06-23 20:14:43,685 ERROR: Exception on /auth/login [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 15, in login
+    user = User.query.filter_by(username=form.username.data).first()
+AttributeError: 'LoginForm' object has no attribute 'username'
+2025-06-23 20:16:02,589 ERROR: Exception on /auth/login [POST] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
 Traceback (most recent call last):
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
     response = self.full_dispatch_request()
@@ -74,8 +56,38 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 24, in login
-    return render_template('auth/login.html', title='Sign In', form=form)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 15, in login
+    user = User.query.filter_by(username=form.username.data).first()
+AttributeError: 'LoginForm' object has no attribute 'username'
+2025-06-23 20:16:54,701 ERROR: Exception on /auth/login [POST] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+Traceback (most recent call last):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/auth/routes.py", line 15, in login
+    user = User.query.filter_by(email=form.email.data.lower()).first()
+AttributeError: 'LoginForm' object has no attribute 'username'
+2025-06-23 20:18:59,999 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:53]
+2025-06-23 20:19:02,291 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:59]
+2025-06-23 20:19:16,778 ERROR: Exception on /dashboard [GET] [in /Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py:828]
+Traceback (most recent call last):
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 872, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 870, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 855, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/routes.py", line 34, in dashboard
+    return render_template('dashboard.html', title='Dashboard',
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 150, in render_template
     return _render(app, template, context)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/templating.py", line 131, in _render
@@ -84,16 +96,18 @@ Traceback (most recent call last):
     self.environment.handle_exception()
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/jinja2/environment.py", line 936, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 1, in top-level template code
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/dashboard.html", line 1, in top-level template code
     {% extends "base.html" %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 149, in top-level template code
-    {% block content %}{% endblock %}
-  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/auth/login.html", line 48, in block 'content'
-    <p class="mt-2"><a href="{{ url_for('auth.reset_password_request') }}" class="text-muted">Forgot your password?</a></p>
+  File "/Users/aryan/Documents/GitHub/job-bot-/app/templates/base.html", line 118, in top-level template code
+    <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Profile</a></li>
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1074, in url_for
     return self.handle_url_build_error(error, endpoint, values)
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/flask/app.py", line 1063, in url_for
     rv = url_adapter.build(  # type: ignore[union-attr]
   File "/Users/aryan/opt/anaconda3/lib/python3.8/site-packages/werkzeug/routing/map.py", line 919, in build
     raise BuildError(endpoint, values, method, self)
-werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'auth.reset_password_request'. Did you mean 'auth.register' instead?
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'main.profile'. Did you mean 'main.index' instead?
+2025-06-23 20:21:38,566 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:53]
+2025-06-23 20:21:40,833 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:59]
+2025-06-23 20:22:48,093 INFO: Job Bot startup [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:53]
+2025-06-23 20:22:50,328 INFO: Database tables created successfully [in /Users/aryan/Documents/GitHub/job-bot-/app/__init__.py:59]

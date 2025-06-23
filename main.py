@@ -2,8 +2,6 @@ import os
 import streamlit as st
 import pdfplumber
 from fpdf import FPDF
-from openai import OpenAI
-import google.generativeai as genai
 import requests
 import json
 from jinja2 import Template
@@ -53,9 +51,7 @@ cv_file = st.sidebar.file_uploader("Upload Your CV (PDF or TXT)", type=["pdf", "
 cover_letter_file = st.sidebar.file_uploader("Upload Old Cover Letter (PDF or TXT)", type=["pdf", "txt"])
 job_desc_file = st.sidebar.file_uploader("Upload Job Description (PDF or TXT)", type=["pdf", "txt"])
 st.sidebar.markdown("---")
-ai_provider = st.sidebar.selectbox("AI Provider", ["OpenAI (ChatGPT)", "Google AI Studio (Gemini)", "Local Model (LM Studio)"])
-openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-gemini_api_key = st.sidebar.text_input("Google AI Studio API Key", type="password")
+st.sidebar.info("This app uses your local LM Studio model for all AI features. No OpenAI or Google AI required.")
 
 # --- Main Area: Extracted Texts ---
 st.header("Step 1: Review Extracted Texts")
@@ -105,47 +101,25 @@ with col_si2:
     if st.button("Suggest Scenario Injection"):
         if job_desc_text.strip():
             try:
-                if ai_provider == "OpenAI (ChatGPT)" and openai_api_key:
-                    client = OpenAI(api_key=openai_api_key)
-                    prompt = f"Given this job description, suggest a scenario to add to my CV to maximize my chances: {job_desc_text}"
-                    completion = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[{"role": "user", "content": prompt}]
-                    )
-                    suggestion = completion.choices[0].message.content.strip()
-                elif ai_provider == "Google AI Studio (Gemini)" and gemini_api_key:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={gemini_api_key}"
-                    prompt = f"Given this job description, suggest a scenario to add to my CV to maximize my chances: {job_desc_text}"
-                    headers = {"Content-Type": "application/json"}
-                    data = {"contents": [{"parts": [{"text": prompt}]}]}
-                    response = requests.post(url, headers=headers, data=json.dumps(data))
-                    if response.status_code == 200:
-                        result = response.json()
-                        suggestion = result["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    else:
-                        suggestion = ""
-                elif ai_provider == "Local Model (LM Studio)":
-                    url = "http://localhost:1234/v1/chat/completions"
-                    prompt = f"Given this job description, suggest a scenario to add to my CV to maximize my chances: {job_desc_text}"
-                    headers = {"Content-Type": "application/json"}
-                    data = {
-                        "model": "local-model",
-                        "messages": [{"role": "user", "content": prompt}],
-                        "max_tokens": 256
-                    }
-                    response = requests.post(url, headers=headers, data=json.dumps(data))
-                    if response.status_code == 200:
-                        result = response.json()
-                        suggestion = result["choices"][0]["message"]["content"].strip()
-                    else:
-                        suggestion = ""
+                url = "http://localhost:1234/v1/chat/completions"
+                prompt = f"Given this job description, suggest a scenario to add to my CV to maximize my chances: {job_desc_text}"
+                headers = {"Content-Type": "application/json"}
+                data = {
+                    "model": "local-model",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 256
+                }
+                response = requests.post(url, headers=headers, data=json.dumps(data))
+                if response.status_code == 200:
+                    result = response.json()
+                    suggestion = result["choices"][0]["message"]["content"].strip()
                 else:
                     suggestion = ""
                 if suggestion:
                     st.session_state['scenario_injection'] = suggestion
                     st.experimental_rerun()
                 else:
-                    st.warning("No suggestion generated. Try again or check your AI provider/API key.")
+                    st.warning("No suggestion generated. Try again or check your local LLM.")
             except Exception as e:
                 st.warning(f"Failed to generate scenario suggestion: {e}")
         else:
@@ -179,86 +153,6 @@ def get_cover_letter_template():
         "Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to your team.\n\n"
         "Sincerely,\n[Your Name]\n"""
     )
-
-def generate_with_openai(cv, cover_letter, job_desc, api_key, scenario_injection):
-    client = OpenAI(api_key=api_key)
-    prompt = f"""
-You are an expert career coach and resume writer. Given the following:
-- My old CV:
-{cv}
-- My old cover letter:
-{cover_letter}
-- The job description:
-{job_desc}
-- Additional scenario instructions:
-{scenario_injection}
-
-Rewrite my CV and cover letter to maximize my chances for this job. Use the following templates:
-CV:
-{get_cv_template()}
-Cover Letter:
-{get_cover_letter_template()}
-
-Make the CV and cover letter highly tailored, scenario-based, and professional. Output:
-CV:\n<CV here>\n\nCOVER LETTER:\n<Cover letter here>
-"""
-    completion = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    text = completion.choices[0].message.content
-    cv_out, cl_out = "", ""
-    if "CV:" in text and "COVER LETTER:" in text:
-        parts = text.split("COVER LETTER:")
-        cv_out = parts[0].replace("CV:", "").strip()
-        cl_out = parts[1].strip()
-    else:
-        cv_out = text
-        cl_out = ""
-    return cv_out, cl_out
-
-def generate_with_gemini(cv, cover_letter, job_desc, api_key, scenario_injection):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}"
-    prompt = f"""
-You are an expert career coach and resume writer. Given the following:
-- My old CV:
-{cv}
-- My old cover letter:
-{cover_letter}
-- The job description:
-{job_desc}
-- Additional scenario instructions:
-{scenario_injection}
-
-Rewrite my CV and cover letter to maximize my chances for this job. Use the following templates:
-CV:
-{get_cv_template()}
-Cover Letter:
-{get_cover_letter_template()}
-
-Make the CV and cover letter highly tailored, scenario-based, and professional. Output:
-CV:\n<CV here>\n\nCOVER LETTER:\n<Cover letter here>
-"""
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "contents": [
-            {"parts": [{"text": prompt}]}
-        ]
-    }
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    if response.status_code != 200:
-        raise Exception(f"Gemini API error: {response.status_code} {response.text}")
-    result = response.json()
-    text = result["candidates"][0]["content"]["parts"][0]["text"]
-    cv_out, cl_out = "", ""
-    if "CV:" in text and "COVER LETTER:" in text:
-        parts = text.split("COVER LETTER:")
-        cv_out = parts[0].replace("CV:", "").strip()
-        cl_out = parts[1].strip()
-    else:
-        cv_out = text
-        cl_out = ""
-    return cv_out, cl_out
 
 def generate_with_local_llm(cv, cover_letter, job_desc, scenario_injection):
     url = "http://localhost:1234/v1/chat/completions"
@@ -309,12 +203,7 @@ if st.button("Generate Tailored CV and Cover Letter"):
     else:
         with st.spinner("Generating with AI..."):
             try:
-                if ai_provider == "OpenAI (ChatGPT)":
-                    cv_out, cl_out = generate_with_openai(cv_text, cover_letter_text, job_desc_text, openai_api_key, scenario_injection)
-                elif ai_provider == "Google AI Studio (Gemini)":
-                    cv_out, cl_out = generate_with_gemini(cv_text, cover_letter_text, job_desc_text, gemini_api_key, scenario_injection)
-                else:
-                    cv_out, cl_out = generate_with_local_llm(cv_text, cover_letter_text, job_desc_text, scenario_injection)
+                cv_out, cl_out = generate_with_local_llm(cv_text, cover_letter_text, job_desc_text, scenario_injection)
                 st.session_state['tailored_cv'] = cv_out
                 st.session_state['tailored_cover_letter'] = cl_out
                 st.success("AI generation complete! Review and edit below.")

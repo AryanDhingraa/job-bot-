@@ -92,7 +92,7 @@ def upload_resume():
 
 @bp.route('/generate-cover-letter', methods=['GET', 'POST'])
 @login_required
-def generate_cover_letter():
+def generate_cover_letter_page():
     form = CoverLetterForm()
     cover_letter = None
     if form.validate_on_submit():

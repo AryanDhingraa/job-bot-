@@ -6,21 +6,27 @@ import docx
 import re
 
 def call_lmstudio(prompt, system_prompt=None, max_tokens=800, temperature=0.7):
-    url = "http://localhost:1234/v1/chat"
+    url = "http://127.0.0.1:1234/v1/chat/completions"
     headers = {"Content-Type": "application/json"}
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
     data = {
-        "model": "google/gemma-3-12b",
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens
     }
     response = requests.post(url, headers=headers, json=data, timeout=60)
     response.raise_for_status()
-    return response.json()["choices"][0]["message"]["content"]
+    result = response.json()
+    print(result)  # For debugging
+    if "choices" in result and result["choices"]:
+        message = result["choices"][0].get("message", {})
+        return message.get("content")
+    else:
+        print("Error: 'choices' not found in lmstudio response")
+        return None
 
 def extract_resume_text(file_path):
     """Extract text from PDF or DOCX resume files."""

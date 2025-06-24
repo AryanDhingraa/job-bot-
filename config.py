@@ -18,11 +18,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # OpenAI configuration
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-    
-    # Google AI configuration
-    GOOGLE_AI_API_KEY = os.environ.get('GOOGLE_AI_API_KEY')
     
     # Upload folder configuration
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
